@@ -5,8 +5,11 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.kabutar.keyfort.Entity.Client;
 
 @RestController
 @RequestMapping("/auth")
@@ -23,7 +26,9 @@ public class AuthController {
 	}
 	
 	@PostMapping("/authz_client")
-	public ResponseEntity<?> authorizeClient(){
+	public ResponseEntity<?> authorizeClient(
+			@RequestBody Client client
+			){
 		return ResponseEntity.ok(null);
 	}
 }
