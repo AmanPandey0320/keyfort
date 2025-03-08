@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-//import org.apache.logging.log4j.LogManager;
-//import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.kabutar.keyfort.Entity.Client;
 
@@ -18,7 +18,7 @@ import com.kabutar.keyfort.Entity.Client;
 @RequestMapping("/auth")
 public class AuthController {
 	
-//	private Logger logger  = LogManager.getLogger(AuthController.class);
+	private Logger logger  = LogManager.getLogger(AuthController.class);
 	
 	@PostMapping("/login_action")
 	public Map<String,String> loginAction(){
@@ -34,7 +34,7 @@ public class AuthController {
 	public ResponseEntity<?> authorizeClient(
 			@RequestBody Client client
 			){
-//		logger.info("Client details recieved in request body: {}",client.toString());
-		return ResponseEntity.ok(null);
+		logger.info("Client details recieved in request body: {}",client.toString());
+		return ResponseEntity.ok(Map.of("data","value"));
 	}
 }
