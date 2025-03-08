@@ -1,6 +1,14 @@
 package com.kabutar.keyfort.Entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+@Entity
 public class Client {
+	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
 	private String clientId;
 	private String clientSecret;
 	private String grantType;
@@ -31,6 +39,13 @@ public class Client {
 	public void setRedirectUri(String redirectUri) {
 		this.redirectUri = redirectUri;
 	}
+	@Override
+	public String toString() {
+		return "Client [clientId=" + clientId + ", clientSecret=" + clientSecret + ", grantType=" + grantType
+				+ ", redirectUri=" + redirectUri + "]";
+	}
+	
+	
 	
 	
 }
