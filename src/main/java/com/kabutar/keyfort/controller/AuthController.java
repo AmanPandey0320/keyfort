@@ -5,16 +5,16 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.kabutar.keyfort.Entity.Credential;
+import com.kabutar.keyfort.Entity.User;
+import com.kabutar.keyfort.dto.UserLoginDto;
 import com.kabutar.keyfort.repository.ClientRepository;
+import com.kabutar.keyfort.services.AuthService;
 import com.kabutar.keyfort.util.ResponseHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -26,17 +26,32 @@ import com.kabutar.keyfort.Entity.Client;
 public class AuthController {
 
 	@Autowired
-	ClientRepository clientRepository;
+	private AuthService authService;
 	
 	private Logger logger  = LogManager.getLogger(AuthController.class);
 	
-	@PostMapping("/login_action")
-	public Map<String,String> loginAction(){
-		return Map.of("authCode","some_secret_auth_code");
-	}
+//	@PostMapping("/login_action")
+//	public ResponseEntity<?> loginAction(
+//			@RequestParam String clientId,
+//			@RequestParam String redirectUri,
+//			@RequestBody UserLoginDto userLoginDto
+//			){
+//
+//	}
+
 	
 	@GetMapping("/token")
 	public Map<String,String> token(){
+		User user = new User();
+
+		user.setUsername("user");
+
+		user = authService.createUser(user,"dummy-client-id-123456");
+		Credential credential = authService.createCredential(user.getId(),"User@123");
+
+		System.out.println("user: "+user);
+		System.out.printf("credential: "+credential);
+
 		return Map.of("authToken","some_jwt_auth_token");
 	}
 	
@@ -44,14 +59,10 @@ public class AuthController {
 	public ResponseEntity<?> authorizeClient(
 			@RequestBody Client client
 			){
-		Client savedClient = clientRepository.findByClientId(client.getClientId());
 
-		if(
-				savedClient.getClientSecret().equals(client.getClientSecret()) &&
-				savedClient.getRedirectUri().equals(client.getRedirectUri()) &&
-				savedClient.getGrantType().equals(client.getGrantType())
-		){
+		if(authService.isClientValid(client)){
 			//success
+			logger.info("Client with id: {}, requested authorization",client.getClientId());
 			return new ResponseHandler()
 					.status(HttpStatus.OK)
 					.build();

@@ -1,9 +1,8 @@
 package com.kabutar.keyfort.Entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+
+import java.util.List;
 
 @Entity
 public class Client {
@@ -13,6 +12,9 @@ public class Client {
 	private String clientSecret;
 	private String grantType;
 	private String redirectUri;
+
+	@OneToMany(mappedBy = "client")
+	private List<User> users;
 	
 	
 	public String getClientId() {
@@ -39,6 +41,15 @@ public class Client {
 	public void setRedirectUri(String redirectUri) {
 		this.redirectUri = redirectUri;
 	}
+
+	public List<User> getUsers() {
+		return users;
+	}
+
+	public void setUsers(List<User> users) {
+		this.users = users;
+	}
+
 	@Override
 	public String toString() {
 		return "Client [clientId=" + clientId + ", clientSecret=" + clientSecret + ", grantType=" + grantType
