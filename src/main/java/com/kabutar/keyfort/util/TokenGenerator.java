@@ -5,7 +5,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
 public class TokenGenerator {
-    private static KeyGenerator keyGenerator;
+    private static final KeyGenerator keyGenerator;
 
     static {
         try {
