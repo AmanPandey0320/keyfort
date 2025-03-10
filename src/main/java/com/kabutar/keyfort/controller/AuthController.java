@@ -2,6 +2,8 @@ package com.kabutar.keyfort.controller;
 
 import java.util.*;
 
+import com.kabutar.keyfort.Entity.Token;
+import com.kabutar.keyfort.Entity.User;
 import com.kabutar.keyfort.dto.UserLoginDto;
 import com.kabutar.keyfort.services.AuthService;
 import com.kabutar.keyfort.util.ResponseHandler;
@@ -24,20 +26,29 @@ public class AuthController {
 	private AuthService authService;
 	
 	private final Logger logger  = LogManager.getLogger(AuthController.class);
-	
+
+	/**
+	 *
+	 * @param clientId
+	 * @param redirectUri
+	 * @param userLoginDto
+	 * @return
+	 */
+
 	@PostMapping("/login_action")
 	public ResponseEntity<?> loginAction(
 			@RequestParam String clientId,
 			@RequestParam String redirectUri,
 			@RequestBody UserLoginDto userLoginDto
 			){
-		if(authService.matchUserCredential(userLoginDto.getUsername(), userLoginDto.getPassword(), clientId)){
-			Map<String,String> data = Map.of(
-					"authToken", TokenGenerator.generateToken128()
-			);
+		User user = authService.matchUserCredential(userLoginDto.getUsername(), userLoginDto.getPassword(), clientId);
+		if(user != null){
+			Token token = authService.getAuthTokenForUser(user);
 			return new ResponseHandler()
 					.status(HttpStatus.OK)
-					.data(List.of(data))
+					.data(
+							List.of( Map.of("authorizationCode",token.getToken()) )
+					)
 					.build();
 		}
 		return new ResponseHandler()
@@ -48,15 +59,6 @@ public class AuthController {
 	
 	@GetMapping("/token")
 	public Map<String,String> token(){
-//		User user = new User();
-//
-//		user.setUsername("user");
-//
-//		user = authService.createUser(user,"dummy-client-id-123456");
-//		Credential credential = authService.createCredential(user.getId(),"User@123");
-//
-//		System.out.println("user: "+user);
-//		System.out.printf("credential: "+credential);
 
 		return Map.of("authToken","some_jwt_auth_token");
 	}

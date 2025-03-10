@@ -1,7 +1,9 @@
 package com.kabutar.keyfort.Entity;
 
+import com.kabutar.keyfort.constant.AuthConstant;
 import jakarta.persistence.*;
 
+import java.sql.Timestamp;
 import java.util.Date;
 
 @Entity
@@ -14,13 +16,13 @@ public class Token {
     private String token;
 
     @Column(nullable = false)
-    private String type = "access";
+    private String type = AuthConstant.TokenType.ACCESS;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Date createdAt;
+    private Timestamp createdAt;
 
-    private Date validTill;
+    private Timestamp validTill;
 
     @ManyToOne
     @JoinColumn(name = "userId", nullable = false)
@@ -54,15 +56,15 @@ public class Token {
         return createdAt;
     }
 
-    public void setCreatedAt(Date createdAt) {
+    public void setCreatedAt(Timestamp createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Date getValidTill() {
+    public Timestamp getValidTill() {
         return validTill;
     }
 
-    public void setValidTill(Date validTill) {
+    public void setValidTill(Timestamp validTill) {
         this.validTill = validTill;
     }
 
