@@ -1,16 +1,11 @@
 package com.kabutar.keyfort.controller;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
-import com.kabutar.keyfort.Entity.Credential;
-import com.kabutar.keyfort.Entity.User;
 import com.kabutar.keyfort.dto.UserLoginDto;
-import com.kabutar.keyfort.repository.ClientRepository;
 import com.kabutar.keyfort.services.AuthService;
 import com.kabutar.keyfort.util.ResponseHandler;
+import com.kabutar.keyfort.util.TokenGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,29 +23,40 @@ public class AuthController {
 	@Autowired
 	private AuthService authService;
 	
-	private Logger logger  = LogManager.getLogger(AuthController.class);
+	private final Logger logger  = LogManager.getLogger(AuthController.class);
 	
-//	@PostMapping("/login_action")
-//	public ResponseEntity<?> loginAction(
-//			@RequestParam String clientId,
-//			@RequestParam String redirectUri,
-//			@RequestBody UserLoginDto userLoginDto
-//			){
-//
-//	}
+	@PostMapping("/login_action")
+	public ResponseEntity<?> loginAction(
+			@RequestParam String clientId,
+			@RequestParam String redirectUri,
+			@RequestBody UserLoginDto userLoginDto
+			){
+		if(authService.matchUserCredential(userLoginDto.getUsername(), userLoginDto.getPassword(), clientId)){
+			Map<String,String> data = Map.of(
+					"authToken", TokenGenerator.generateToken128()
+			);
+			return new ResponseHandler()
+					.status(HttpStatus.OK)
+					.data(List.of(data))
+					.build();
+		}
+		return new ResponseHandler()
+				.status(HttpStatus.UNAUTHORIZED)
+				.build();
+	}
 
 	
 	@GetMapping("/token")
 	public Map<String,String> token(){
-		User user = new User();
-
-		user.setUsername("user");
-
-		user = authService.createUser(user,"dummy-client-id-123456");
-		Credential credential = authService.createCredential(user.getId(),"User@123");
-
-		System.out.println("user: "+user);
-		System.out.printf("credential: "+credential);
+//		User user = new User();
+//
+//		user.setUsername("user");
+//
+//		user = authService.createUser(user,"dummy-client-id-123456");
+//		Credential credential = authService.createCredential(user.getId(),"User@123");
+//
+//		System.out.println("user: "+user);
+//		System.out.printf("credential: "+credential);
 
 		return Map.of("authToken","some_jwt_auth_token");
 	}
@@ -72,7 +78,7 @@ public class AuthController {
 
 		return new ResponseHandler()
 				.status(HttpStatus.BAD_REQUEST)
-				.error(Arrays.asList("Invalid requester details"))
+				.error(List.of("Invalid requester details"))
 				.build();
 	}
 }

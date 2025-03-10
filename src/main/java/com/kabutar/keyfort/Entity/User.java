@@ -31,8 +31,10 @@ public class User {
     private Client client;
 
     @OneToMany
-    @Column(nullable = true)
     private List<Credential> credentials;
+
+    @OneToMany
+    private List<Token> tokens;
 
     public String getId() {
         return id;
@@ -96,5 +98,13 @@ public class User {
 
     public void setCredentials(List<Credential> credentials) {
         this.credentials = credentials;
+    }
+
+    public List<Token> getTokens() {
+        return tokens;
+    }
+
+    public void setTokens(List<Token> tokens) {
+        this.tokens = tokens;
     }
 }

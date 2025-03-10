@@ -14,13 +14,16 @@ import java.util.List;
 @Repository
 public interface CredentialRepository extends JpaRepository<Credential,String> {
 
-    @Query(value = "SELECT c FROM credential c WHERE c.user_id = :userId AND c.is_active = true",nativeQuery = true)
-    List<Credential> findActiveCredentialsForUser(@Param("user") String userId);
+    @Query(value = "SELECT * FROM credential c WHERE c.user_id = :userid AND c.is_active = true",nativeQuery = true)
+    List<Credential> findActiveCredentialsForUser(@Param("userid") String userId);
 
     Credential save(Credential credential);
 
     @Modifying
     @Transactional
-    @Query(value = "UPDATE credential c SET c.is_active = false WHERE c.user_id = :userId", nativeQuery = true)
-    void setAllUserCredentialsInactive(String userId);
+    @Query(value = "UPDATE credential c SET c.is_active = false WHERE c.user_id = :userid", nativeQuery = true)
+    void setAllUserCredentialsInactive(@Param("userid") String userId);
+
+    @Query(value = "SELECT c FROM credential c WHERE c.user_id = :userid",nativeQuery = true)
+    Credential findByUserId(@Param("userid") String userId);
 }
