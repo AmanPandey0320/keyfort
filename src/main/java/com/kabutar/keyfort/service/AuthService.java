@@ -149,9 +149,9 @@ public class AuthService {
 
     }
 
-//    public Token createNewAccessToken(String authCode){
-//
-//    }
+    public Token getTokenForAuthCode(String authCode){
+        return tokenRepository.findByToken(authCode);
+    }
 
 
 

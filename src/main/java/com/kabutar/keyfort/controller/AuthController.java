@@ -1,13 +1,16 @@
 package com.kabutar.keyfort.controller;
 
+import java.sql.Timestamp;
 import java.util.*;
 
 import com.kabutar.keyfort.Entity.Token;
 import com.kabutar.keyfort.Entity.User;
+import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.dto.ClientDto;
 import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;
 import com.kabutar.keyfort.service.AuthService;
+import com.kabutar.keyfort.service.JwtService;
 import com.kabutar.keyfort.util.ResponseHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,13 +26,15 @@ public class AuthController {
 
 	@Autowired
 	private AuthService authService;
+
+	@Autowired
+	private JwtService jwtService;
 	
 	private final Logger logger  = LogManager.getLogger(AuthController.class);
 
 	/**
 	 *
 	 * @param clientId
-	 * @param redirectUri
 	 * @param userDto
 	 * @return
 	 */
@@ -37,7 +42,6 @@ public class AuthController {
 	@PostMapping("/login_action")
 	public ResponseEntity<?> loginAction(
 			@RequestParam String clientId,
-			@RequestParam String redirectUri,
 			@RequestBody UserDto userDto
 	){
 		User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword(), clientId);
@@ -56,12 +60,13 @@ public class AuthController {
 	}
 
 	
-	@GetMapping("/token")
+	@PostMapping("/token")
 	public ResponseEntity<?> token(
 			@RequestBody TokenDto tokenDto
 	){
 		try{
-			if(!authService.isAuthCodeValid(tokenDto.getCode())){
+			Token token = authService.getTokenForAuthCode(tokenDto.getCode());
+			if(token == null || (token.getValidTill().getTime() > System.currentTimeMillis())){
 				//invalid auth code
 				return new ResponseHandler()
 						.status(HttpStatus.BAD_REQUEST)
@@ -72,7 +77,29 @@ public class AuthController {
 			//valid auth code
 			//send token
 
-			Token token;
+			User user = token.getUser();
+			String accessToken = jwtService.generateToken(
+					Map.of(AuthConstant.ROLE,List.of("default")),
+					user.getUsername(),
+					AuthConstant.ExpiryTime.ACCESS_TOKEN
+			);
+
+			String refreshToken = jwtService.generateToken(
+					Map.of(AuthConstant.ROLE,List.of("default")),
+					user.getUsername(),
+					AuthConstant.ExpiryTime.REFRESH_TOKEN
+			);
+
+			return new ResponseHandler()
+					.status(HttpStatus.OK)
+					.data(List.of(
+							Map.of(
+									"access_token",accessToken,
+									"refresh_token",refreshToken,
+									"expires_in", AuthConstant.ExpiryTime.ACCESS_TOKEN
+							)
+					))
+					.build();
 
 		} catch (Exception e) {
 			logger.error(e.getStackTrace());
@@ -81,7 +108,6 @@ public class AuthController {
 					.error(List.of(e.getLocalizedMessage()))
 					.build();
 		}
-        return null;
     }
 	
 	@PostMapping("/authz_client")

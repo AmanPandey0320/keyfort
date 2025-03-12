@@ -1,5 +1,6 @@
 package com.kabutar.keyfort.service;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
@@ -10,6 +11,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.Map;
+import java.util.function.Function;
 
 @Component
 public class JwtService {
@@ -31,25 +33,56 @@ public class JwtService {
         return Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
     }
 
-    private long getExpiryTime(){
-        return EXPIRE*1000;
+    private long getExpiryTime(long time){
+        return time*1000;
+    }
+
+    private Claims extractAllClaim(String token){
+        return Jwts
+                .parserBuilder()
+                .setSigningKey(this.getSigningKey())
+                .build()
+                .parseClaimsJwt(token)
+                .getBody();
+    }
+
+    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = this.extractAllClaim(token);
+        return claimsResolver.apply(claims);
     }
 
     public String generateToken(
             Map<String,Object> extraClaims,
             String username
     ){
+        return this.generateToken(extraClaims,username,EXPIRE);
+    }
+
+    public String generateToken(
+            Map<String,Object> extraClaims,
+            String username,
+            long expiryTime
+    ){
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
                 .setSubject(username)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + this.getExpiryTime()))
+                .setExpiration(new Date(System.currentTimeMillis() + this.getExpiryTime(expiryTime)))
                 .signWith(this.getSigningKey(),this.getSigningAlgorithm())
                 .compact();
     }
 
+    public Date getExpiryTime(String token){
+        return this.extractClaim(token,Claims::getExpiration);
+    }
 
+    public boolean isTokenExpired(String token){
+        return this.getExpiryTime(token).before(new Date(System.currentTimeMillis()));
+    }
 
+    public String extractUsername(String token){
+        return this.extractClaim(token,Claims::getSubject);
+    }
 
 }
