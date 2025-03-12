@@ -1,4 +1,4 @@
-package com.kabutar.keyfort.services;
+package com.kabutar.keyfort.service;
 
 import com.kabutar.keyfort.Entity.Client;
 import com.kabutar.keyfort.Entity.Credential;
@@ -34,16 +34,21 @@ public class AuthService {
 
     /**
      *
-     * @param client
+     *
      * @return
      */
-    public boolean isClientValid(Client client){
-        Client savedClient = clientRepository.findByClientId(client.getClientId());
+    public boolean isClientValid(
+            String clientId,
+            String clientSecret,
+            String redirectUri,
+            String grantType
+    ){
+        Client client = clientRepository.findByClientId(clientId);
 
         if(
-                savedClient.getClientSecret().equals(client.getClientSecret()) &&
-                        savedClient.getRedirectUri().equals(client.getRedirectUri()) &&
-                        savedClient.getGrantType().equals(client.getGrantType())
+                client.getClientSecret().equals(clientSecret) &&
+                client.getRedirectUri().equals(redirectUri) &&
+                client.getGrantType().equals(grantType)
         ){
             //success
             return true;
@@ -95,7 +100,7 @@ public class AuthService {
         token.setUser(user);
         token.setType(AuthConstant.TokenType.AUTHORIZATION);
         token.setCreatedAt(currentTimestamp);
-        token.setValidTill(new Timestamp(currentTimestamp.getTime() + 5*60*100 + 200 ));
+        token.setValidTill(new Timestamp(currentTimestamp.getTime() + AuthConstant.ExpiryTime.AUTHZ_CODE *100  ));
 
         token = tokenRepository.save(token);
 
@@ -135,6 +140,19 @@ public class AuthService {
         return credential;
 
     }
+
+    public boolean isAuthCodeValid(String authCode){
+        Token token = tokenRepository.findByToken(authCode);
+
+        return token != null && (token.getValidTill().getTime() <= System.currentTimeMillis());
+
+
+    }
+
+//    public Token createNewAccessToken(String authCode){
+//
+//    }
+
 
 
 }

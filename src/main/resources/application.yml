@@ -1,0 +1,5 @@
+security:
+  jwt:
+    secret: 'some-super-secret'
+    expire: 1800
+    algorithm: 'HS256'

@@ -4,10 +4,11 @@ import java.util.*;
 
 import com.kabutar.keyfort.Entity.Token;
 import com.kabutar.keyfort.Entity.User;
-import com.kabutar.keyfort.dto.UserLoginDto;
-import com.kabutar.keyfort.services.AuthService;
+import com.kabutar.keyfort.dto.ClientDto;
+import com.kabutar.keyfort.dto.TokenDto;
+import com.kabutar.keyfort.dto.UserDto;
+import com.kabutar.keyfort.service.AuthService;
 import com.kabutar.keyfort.util.ResponseHandler;
-import com.kabutar.keyfort.util.TokenGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,8 +16,6 @@ import org.springframework.web.bind.annotation.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-
-import com.kabutar.keyfort.Entity.Client;
 
 @RestController
 @RequestMapping("/auth")
@@ -31,7 +30,7 @@ public class AuthController {
 	 *
 	 * @param clientId
 	 * @param redirectUri
-	 * @param userLoginDto
+	 * @param userDto
 	 * @return
 	 */
 
@@ -39,9 +38,9 @@ public class AuthController {
 	public ResponseEntity<?> loginAction(
 			@RequestParam String clientId,
 			@RequestParam String redirectUri,
-			@RequestBody UserLoginDto userLoginDto
-			){
-		User user = authService.matchUserCredential(userLoginDto.getUsername(), userLoginDto.getPassword(), clientId);
+			@RequestBody UserDto userDto
+	){
+		User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword(), clientId);
 		if(user != null){
 			Token token = authService.getAuthTokenForUser(user);
 			return new ResponseHandler()
@@ -58,17 +57,44 @@ public class AuthController {
 
 	
 	@GetMapping("/token")
-	public Map<String,String> token(){
+	public ResponseEntity<?> token(
+			@RequestBody TokenDto tokenDto
+	){
+		try{
+			if(!authService.isAuthCodeValid(tokenDto.getCode())){
+				//invalid auth code
+				return new ResponseHandler()
+						.status(HttpStatus.BAD_REQUEST)
+						.error(List.of("The authorization code is either invalid or has expired"))
+						.build();
+			}
 
-		return Map.of("authToken","some_jwt_auth_token");
-	}
+			//valid auth code
+			//send token
+
+			Token token;
+
+		} catch (Exception e) {
+			logger.error(e.getStackTrace());
+			return new ResponseHandler()
+					.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.error(List.of(e.getLocalizedMessage()))
+					.build();
+		}
+        return null;
+    }
 	
 	@PostMapping("/authz_client")
 	public ResponseEntity<?> authorizeClient(
-			@RequestBody Client client
-			){
+			@RequestBody ClientDto client
+	){
 
-		if(authService.isClientValid(client)){
+		if(authService.isClientValid(
+				client.getClientId(),
+				client.getClientSecret(),
+				client.getRedirectUri(),
+				client.getGrantType()
+		)){
 			//success
 			logger.info("Client with id: {}, requested authorization",client.getClientId());
 			return new ResponseHandler()

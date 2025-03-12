@@ -1,10 +1,10 @@
 package com.kabutar.keyfort.dto;
 
-public class UserLoginDto {
+public class UserDto {
     private String username;
     private String password;
 
-    public UserLoginDto(String username, String password) {
+    public UserDto(String username, String password) {
         this.username = username;
         this.password = password;
     }
