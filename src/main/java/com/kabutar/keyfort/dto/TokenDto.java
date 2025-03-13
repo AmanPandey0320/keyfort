@@ -1,17 +1,35 @@
 package com.kabutar.keyfort.dto;
 
 public class TokenDto {
-    private String code;
+    private String token;
+    private String grantType;
 
-    public TokenDto(String code) {
-        this.code = code;
+    public TokenDto(String token, String grantType) {
+        this.token = token;
+        this.grantType = grantType;
     }
 
-    public String getCode() {
-        return code;
+    public String getToken() {
+        return token;
     }
 
-    public void setCode(String code) {
-        this.code = code;
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    public String getGrantType() {
+        return grantType;
+    }
+
+    public void setGrantType(String grantType) {
+        this.grantType = grantType;
+    }
+
+    @Override
+    public String toString() {
+        return "TokenDto{" +
+                "token='" + token + '\'' +
+                ", grantType='" + grantType + '\'' +
+                '}';
     }
 }

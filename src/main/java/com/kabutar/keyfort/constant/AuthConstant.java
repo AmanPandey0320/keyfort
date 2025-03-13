@@ -18,4 +18,9 @@ public class AuthConstant {
         static public Integer AUTHZ_CODE = 300;
 
     }
+
+    public static class ClaimType{
+        static public String ROLE = "role";
+        static public String CLIENT = "client";
+    }
 }

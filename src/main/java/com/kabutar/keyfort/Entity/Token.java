@@ -75,4 +75,16 @@ public class Token {
     public void setUser(User user) {
         this.user = user;
     }
+
+    @Override
+    public String toString() {
+        return "Token{" +
+                "id='" + id + '\'' +
+                ", token='" + token + '\'' +
+                ", type='" + type + '\'' +
+                ", createdAt=" + createdAt +
+                ", validTill=" + validTill +
+                ", user=" + user +
+                '}';
+    }
 }

@@ -100,7 +100,7 @@ public class AuthService {
         token.setUser(user);
         token.setType(AuthConstant.TokenType.AUTHORIZATION);
         token.setCreatedAt(currentTimestamp);
-        token.setValidTill(new Timestamp(currentTimestamp.getTime() + AuthConstant.ExpiryTime.AUTHZ_CODE *100  ));
+        token.setValidTill(new Timestamp(currentTimestamp.getTime() + AuthConstant.ExpiryTime.AUTHZ_CODE *1000  ));
 
         token = tokenRepository.save(token);
 

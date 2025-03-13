@@ -1,6 +1,5 @@
-package com.kabutar.keyfort.controller;
+package com.kabutar.keyfort.controller.v1;
 
-import java.sql.Timestamp;
 import java.util.*;
 
 import com.kabutar.keyfort.Entity.Token;
@@ -21,7 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
 	@Autowired
@@ -65,12 +64,19 @@ public class AuthController {
 			@RequestBody TokenDto tokenDto
 	){
 		try{
-			Token token = authService.getTokenForAuthCode(tokenDto.getCode());
-			if(token == null || (token.getValidTill().getTime() > System.currentTimeMillis())){
+			Token token = authService.getTokenForAuthCode(tokenDto.getToken());
+
+			if(token == null || (token.getValidTill().getTime() < System.currentTimeMillis())){
 				//invalid auth code
 				return new ResponseHandler()
 						.status(HttpStatus.BAD_REQUEST)
 						.error(List.of("The authorization code is either invalid or has expired"))
+						.build();
+			}else if(!token.getType().equals(tokenDto.getGrantType())){
+				//invalid auth code
+				return new ResponseHandler()
+						.status(HttpStatus.FORBIDDEN)
+						.error(List.of("Invalid grant"))
 						.build();
 			}
 
@@ -85,7 +91,10 @@ public class AuthController {
 			);
 
 			String refreshToken = jwtService.generateToken(
-					Map.of(AuthConstant.ROLE,List.of("default")),
+					Map.of(
+							AuthConstant.ROLE,List.of("default")
+
+					),
 					user.getUsername(),
 					AuthConstant.ExpiryTime.REFRESH_TOKEN
 			);
