@@ -16,4 +16,5 @@ public interface TokenRepository extends JpaRepository<Credential,Integer> {
             nativeQuery = true
     )
     public Token findByToken(@Param("token") String token);
+
 }

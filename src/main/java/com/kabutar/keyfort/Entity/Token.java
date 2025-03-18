@@ -24,6 +24,9 @@ public class Token {
 
     private Timestamp validTill;
 
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    private boolean isValid = true;
+
     @ManyToOne
     @JoinColumn(name = "userId", nullable = false)
     private User user;
@@ -76,6 +79,14 @@ public class Token {
         this.user = user;
     }
 
+    public boolean isValid() {
+        return isValid;
+    }
+
+    public void setValid(boolean valid) {
+        isValid = valid;
+    }
+
     @Override
     public String toString() {
         return "Token{" +
@@ -84,6 +95,7 @@ public class Token {
                 ", type='" + type + '\'' +
                 ", createdAt=" + createdAt +
                 ", validTill=" + validTill +
+                ", isValid=" + isValid +
                 ", user=" + user +
                 '}';
     }

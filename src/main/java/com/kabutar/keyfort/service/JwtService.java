@@ -37,12 +37,12 @@ public class JwtService {
         return time*1000;
     }
 
-    private Claims extractAllClaim(String token){
+    public Claims extractAllClaim(String token){
         return Jwts
                 .parserBuilder()
                 .setSigningKey(this.getSigningKey())
                 .build()
-                .parseClaimsJwt(token)
+                .parseClaimsJws(token)
                 .getBody();
     }
 

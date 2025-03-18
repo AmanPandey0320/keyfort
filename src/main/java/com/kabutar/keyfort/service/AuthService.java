@@ -11,11 +11,14 @@ import com.kabutar.keyfort.repository.TokenRepository;
 import com.kabutar.keyfort.repository.UserRepository;
 import com.kabutar.keyfort.util.PasswordEncoderUtil;
 import com.kabutar.keyfort.util.TokenGenerator;
+import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class AuthService {
@@ -31,6 +34,12 @@ public class AuthService {
 
     @Autowired
     private TokenRepository tokenRepository;
+
+    @Autowired
+    private JwtService jwtService;
+
+    @Autowired
+    private RoleService roleService;
 
     /**
      *
@@ -141,18 +150,99 @@ public class AuthService {
 
     }
 
-    public boolean isAuthCodeValid(String authCode){
-        Token token = tokenRepository.findByToken(authCode);
+    /**
+     *
+     * @param token
+     * @param grantType
+     * @return
+     */
+    public Map<String,Object> exchangeForTokens(String token,String grantType){
+        Token savedToken = tokenRepository.findByToken(token);
 
-        return token != null && (token.getValidTill().getTime() <= System.currentTimeMillis());
+        if(savedToken == null){
+            return Map.of("isValid",false);
+        }
+
+        if(!savedToken.isValid()){
+            return Map.of("isValid",false);
+        }
+
+        if(!savedToken.getType().equals(grantType)){
+            return Map.of("isValid",false);
+        }
+
+        if(savedToken.getValidTill().getTime() < System.currentTimeMillis()){
+            return Map.of("isValid",false);
+        }
+
+        Map<String,Object> tokens = new HashMap<>();
+        String clientId = null;
+        String userName = null;
+        List<String> roles = null;
+        Token refreshToken = new Token();
+        Token accessToken = new Token();
+        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
+
+        if(savedToken.getType().equals(AuthConstant.TokenType.REFRESH)){
+            Claims claims = jwtService.extractAllClaim(token);
+            clientId = (String) claims.get(AuthConstant.ClaimType.CLIENT);
+            userName = claims.getSubject();
+            roles = (List<String>) claims.get(AuthConstant.ClaimType.ROLE);
 
 
+
+            if(!savedToken.getUser().getClient().getClientId().equals(clientId)){
+                return Map.of("isValid",false);
+            }
+
+            if(!savedToken.getUser().getUsername().equals(userName)){
+                return Map.of("isValid",false);
+            }
+        }else{
+            clientId = savedToken.getUser().getClient().getClientId();
+            userName = savedToken.getUser().getUsername();
+            roles = roleService.getRolesForUser(savedToken.getUser());
+        }
+
+        refreshToken.setToken(jwtService.generateToken(
+                Map.of(
+                        AuthConstant.ClaimType.ROLE,roles,
+                        AuthConstant.ClaimType.CLIENT,clientId
+                ),
+                userName,
+                AuthConstant.ExpiryTime.REFRESH_TOKEN
+        ));
+        refreshToken.setType(AuthConstant.TokenType.REFRESH);
+        refreshToken.setUser(savedToken.getUser());
+        refreshToken.setCreatedAt(currentTimestamp);
+        refreshToken.setValidTill(new Timestamp(currentTimestamp.getTime() + AuthConstant.ExpiryTime.REFRESH_TOKEN *1000  ));
+
+        accessToken.setToken(jwtService.generateToken(
+                Map.of(
+                        AuthConstant.ClaimType.ROLE,roles,
+                        AuthConstant.ClaimType.CLIENT,clientId
+                ),
+                userName,
+                AuthConstant.ExpiryTime.ACCESS_TOKEN
+        ));
+        accessToken.setType(AuthConstant.TokenType.ACCESS);
+        accessToken.setUser(savedToken.getUser());
+        accessToken.setValidTill(currentTimestamp);
+        accessToken.setValidTill(new Timestamp(currentTimestamp.getTime() + AuthConstant.ExpiryTime.ACCESS_TOKEN *1000  ));
+
+        savedToken.setValid(false);
+
+        //save tokens
+        accessToken = tokenRepository.save(accessToken);
+        refreshToken = tokenRepository.save(refreshToken);
+        tokenRepository.save(savedToken);
+
+
+        return Map.of(
+                "isValid",true,
+                "refresh",refreshToken.getToken(),
+                "access",accessToken.getToken()
+        );
     }
-
-    public Token getTokenForAuthCode(String authCode){
-        return tokenRepository.findByToken(authCode);
-    }
-
-
 
 }
