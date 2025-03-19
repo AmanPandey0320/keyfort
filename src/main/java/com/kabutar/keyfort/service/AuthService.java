@@ -153,17 +153,34 @@ public class AuthService {
     /**
      *
      * @param token
+     * @return
+     */
+    private boolean isTokenValid(Token token){
+        if(token == null){
+            return false;
+        }
+
+        if(!token.isValid()){
+            return false;
+        }
+
+        if(token.getValidTill().getTime() < System.currentTimeMillis()){
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     *
+     * @param token
      * @param grantType
      * @return
      */
     public Map<String,Object> exchangeForTokens(String token,String grantType){
         Token savedToken = tokenRepository.findByToken(token);
 
-        if(savedToken == null){
-            return Map.of("isValid",false);
-        }
-
-        if(!savedToken.isValid()){
+        if(!this.isTokenValid(savedToken)){
             return Map.of("isValid",false);
         }
 
@@ -171,11 +188,6 @@ public class AuthService {
             return Map.of("isValid",false);
         }
 
-        if(savedToken.getValidTill().getTime() < System.currentTimeMillis()){
-            return Map.of("isValid",false);
-        }
-
-        Map<String,Object> tokens = new HashMap<>();
         String clientId = null;
         String userName = null;
         List<String> roles = null;
@@ -243,6 +255,17 @@ public class AuthService {
                 "refresh",refreshToken.getToken(),
                 "access",accessToken.getToken()
         );
+    }
+
+    /**
+     *
+     * @param token
+     * @return
+     */
+    public boolean validateAccessToken(String jwt, String resourceUrl){
+        Token token = tokenRepository.findByToken(jwt);
+
+        return this.isTokenValid(token);
     }
 
 }

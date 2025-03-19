@@ -59,6 +59,22 @@ public class AuthController {
 				.build();
 	}
 
+	@GetMapping("/token")
+	public ResponseEntity<?> validateToken(
+			@RequestHeader(name = "authorization") String authorization,
+			@RequestParam String resourceUrl
+	){
+		if(authService.validateAccessToken(authorization,resourceUrl)){
+			return new ResponseHandler()
+					.status(HttpStatus.OK)
+					.build();
+		}
+
+		return new ResponseHandler()
+				.status(HttpStatus.UNAUTHORIZED)
+				.build();
+	}
+
 	
 	@PostMapping("/token")
 	public ResponseEntity<?> token(
