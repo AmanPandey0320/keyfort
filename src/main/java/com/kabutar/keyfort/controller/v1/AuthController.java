@@ -59,12 +59,20 @@ public class AuthController {
 				.build();
 	}
 
+	/**
+	 *
+	 * @param authorization
+	 * @param resourceUrl
+	 * @return
+	 */
 	@GetMapping("/token")
 	public ResponseEntity<?> validateToken(
 			@RequestHeader(name = "authorization") String authorization,
 			@RequestParam String resourceUrl
 	){
-		if(authService.validateAccessToken(authorization,resourceUrl)){
+		String token = authorization.replaceFirst("^Bearer ","");
+
+		if(authService.validateAccessToken(token,resourceUrl)){
 			return new ResponseHandler()
 					.status(HttpStatus.OK)
 					.build();
@@ -75,7 +83,11 @@ public class AuthController {
 				.build();
 	}
 
-	
+	/**
+	 *
+	 * @param tokenDto
+	 * @return
+	 */
 	@PostMapping("/token")
 	public ResponseEntity<?> token(
 			@RequestBody TokenDto tokenDto
