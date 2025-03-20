@@ -4,14 +4,12 @@ import java.util.*;
 
 import com.kabutar.keyfort.Entity.Token;
 import com.kabutar.keyfort.Entity.User;
-import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.dto.ClientDto;
 import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;
 import com.kabutar.keyfort.service.AuthService;
 import com.kabutar.keyfort.service.JwtService;
 import com.kabutar.keyfort.util.ResponseHandler;
-import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
