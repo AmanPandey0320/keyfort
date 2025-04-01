@@ -13,8 +13,10 @@ public class Credential {
 
     private String hash;
 
+    @Column(columnDefinition = "BOOLEAN DEFAULT TRUE")
     private Boolean isActive;
 
+    @Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean isDeleted;
 
     @Temporal(TemporalType.TIMESTAMP)

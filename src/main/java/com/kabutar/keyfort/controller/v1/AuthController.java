@@ -19,7 +19,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v1/auth/{dimension}")
 public class AuthController {
 
 	@Autowired
@@ -40,9 +40,10 @@ public class AuthController {
 	@PostMapping("/login_action")
 	public ResponseEntity<?> loginAction(
 			@RequestParam String clientId,
-			@RequestBody UserDto userDto
+			@RequestBody UserDto userDto,
+			@PathVariable String dimension
 	){
-		User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword(), clientId);
+		User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword(), clientId, dimension);
 		if(user != null){
 			Token token = authService.getAuthTokenForUser(user);
 			return new ResponseHandler()
@@ -66,11 +67,12 @@ public class AuthController {
 	@GetMapping("/token")
 	public ResponseEntity<?> validateToken(
 			@RequestHeader(name = "authorization") String authorization,
-			@RequestParam String resourceUrl
+			@RequestParam String resourceUrl,
+			@PathVariable String dimension
 	){
 		String token = authorization.replaceFirst("^Bearer ","");
 
-		if(authService.validateAccessToken(token,resourceUrl)){
+		if(authService.validateAccessToken(token,resourceUrl,dimension)){
 			return new ResponseHandler()
 					.status(HttpStatus.OK)
 					.build();
@@ -88,10 +90,11 @@ public class AuthController {
 	 */
 	@PostMapping("/token")
 	public ResponseEntity<?> token(
-			@RequestBody TokenDto tokenDto
+			@RequestBody TokenDto tokenDto,
+			@PathVariable String dimension
 	){
 		try{
-			Map<String,Object> tokens = authService.exchangeForTokens(tokenDto.getToken(),tokenDto.getGrantType());
+			Map<String,Object> tokens = authService.exchangeForTokens(tokenDto.getToken(),tokenDto.getGrantType(), dimension);
 
 			if(!((boolean) tokens.get("isValid"))){
 				return new ResponseHandler()
@@ -117,14 +120,16 @@ public class AuthController {
 	
 	@PostMapping("/authz_client")
 	public ResponseEntity<?> authorizeClient(
-			@RequestBody ClientDto client
+			@RequestBody ClientDto client,
+			@PathVariable String dimension
 	){
 
 		if(authService.isClientValid(
 				client.getClientId(),
 				client.getClientSecret(),
 				client.getRedirectUri(),
-				client.getGrantType()
+				client.getGrantType(),
+				dimension
 		)){
 			//success
 			logger.info("Client with id: {}, requested authorization",client.getClientId());

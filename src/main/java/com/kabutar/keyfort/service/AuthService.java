@@ -1,14 +1,8 @@
 package com.kabutar.keyfort.service;
 
-import com.kabutar.keyfort.Entity.Client;
-import com.kabutar.keyfort.Entity.Credential;
-import com.kabutar.keyfort.Entity.Token;
-import com.kabutar.keyfort.Entity.User;
+import com.kabutar.keyfort.Entity.*;
 import com.kabutar.keyfort.constant.AuthConstant;
-import com.kabutar.keyfort.repository.ClientRepository;
-import com.kabutar.keyfort.repository.CredentialRepository;
-import com.kabutar.keyfort.repository.TokenRepository;
-import com.kabutar.keyfort.repository.UserRepository;
+import com.kabutar.keyfort.repository.*;
 import com.kabutar.keyfort.util.PasswordEncoderUtil;
 import com.kabutar.keyfort.util.TokenGenerator;
 import io.jsonwebtoken.Claims;
@@ -36,6 +30,9 @@ public class AuthService {
     private TokenRepository tokenRepository;
 
     @Autowired
+    private DimensionRepository dimensionRepository;
+
+    @Autowired
     private JwtService jwtService;
 
     @Autowired
@@ -50,14 +47,17 @@ public class AuthService {
             String clientId,
             String clientSecret,
             String redirectUri,
-            String grantType
+            String grantType,
+            String dimensionName
     ){
         Client client = clientRepository.findByClientId(clientId);
+        Dimension dimension = dimensionRepository.findByName(dimensionName);
 
         if(
                 client.getClientSecret().equals(clientSecret) &&
                 client.getRedirectUri().equals(redirectUri) &&
-                client.getGrantType().equals(grantType)
+                client.getGrantType().equals(grantType) &&
+                dimension.getName().equals(dimensionName)
         ){
             //success
             return true;
@@ -73,10 +73,13 @@ public class AuthService {
      * @param clientId
      * @return
      */
-    public User matchUserCredential(String username, String password, String clientId){
+    public User matchUserCredential(String username, String password, String clientId, String dimension){
         User user = userRepository.findByUsername(username);
 
-        if(user == null || !user.getClient().getClientId().equals(clientId)){
+        if(
+                user == null || !user.getClient().getClientId().equals(clientId) ||
+                !user.getClient().getDimension().getName().equals(dimension)
+        ){
             return null;
         }
 
@@ -177,7 +180,7 @@ public class AuthService {
      * @param grantType
      * @return
      */
-    public Map<String,Object> exchangeForTokens(String token,String grantType){
+    public Map<String,Object> exchangeForTokens(String token,String grantType, String dimension){
         Token savedToken = tokenRepository.findByToken(token);
 
         if(!this.isTokenValid(savedToken)){
@@ -185,6 +188,10 @@ public class AuthService {
         }
 
         if(!savedToken.getType().equals(grantType)){
+            return Map.of("isValid",false);
+        }
+
+        if(!savedToken.getUser().getClient().getDimension().getName().equals(dimension)){
             return Map.of("isValid",false);
         }
 
@@ -259,12 +266,15 @@ public class AuthService {
 
     /**
      *
-     * @param token
+     * @param jwt
+     * @param resourceUrl
      * @return
      */
-    public boolean validateAccessToken(String jwt, String resourceUrl){
+    public boolean validateAccessToken(String jwt, String resourceUrl,String dimension) {
         Token token = tokenRepository.findByToken(jwt);
-
+        if(!token.getUser().getClient().getDimension().getName().equals(dimension)){
+            return false;
+        }
         return this.isTokenValid(token);
     }
 

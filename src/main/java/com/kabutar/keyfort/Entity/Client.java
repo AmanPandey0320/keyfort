@@ -12,11 +12,31 @@ public class Client {
 	private String clientSecret;
 	private String grantType;
 	private String redirectUri;
+	private String name;
 
 	@OneToMany(mappedBy = "client")
 	private List<User> users;
-	
-	
+
+	@ManyToOne
+	@JoinColumn(name = "dimension_id", nullable = false)
+	private Dimension dimension;
+
+	public Dimension getDimension() {
+		return dimension;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setDimension(Dimension dimension) {
+		this.dimension = dimension;
+	}
+
 	public String getClientId() {
 		return clientId;
 	}
