@@ -5,7 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface DimensionRepository extends JpaRepository<Dimension,Integer> {
+public interface DimensionRepository extends JpaRepository<Dimension,String> {
     public Dimension save(Dimension dimension);
 
     @Query(

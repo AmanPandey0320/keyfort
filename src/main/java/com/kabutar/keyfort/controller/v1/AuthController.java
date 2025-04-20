@@ -121,7 +121,7 @@ public class AuthController {
 	@PostMapping("/authz_client")
 	public ResponseEntity<?> authorizeClient(
 			@RequestBody ClientDto client,
-			@PathVariable String dimension
+			@PathVariable("dimension") String dimension
 	){
 
 		if(authService.isClientValid(

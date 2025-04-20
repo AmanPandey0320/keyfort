@@ -5,13 +5,8 @@ public class ClientDto {
     private String clientSecret;
     private String grantType;
     private String redirectUri;
-
-    public ClientDto(String clientId, String clientSecret, String grantType, String redirectUri) {
-        this.clientId = clientId;
-        this.clientSecret = clientSecret;
-        this.grantType = grantType;
-        this.redirectUri = redirectUri;
-    }
+    
+    public ClientDto() {} 
 
     public String getClientId() {
         return clientId;

@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface TokenRepository extends JpaRepository<Credential,Integer> {
+public interface TokenRepository extends JpaRepository<Credential,String> {
     public Token save (Token token);
 
     @Query(

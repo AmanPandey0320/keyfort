@@ -13,6 +13,7 @@ import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class AuthService {
@@ -55,7 +56,7 @@ public class AuthService {
 
         if(
                 client.getClientSecret().equals(clientSecret) &&
-                client.getRedirectUri().equals(redirectUri) &&
+                client.getRedirectUri().startsWith(redirectUri) &&
                 client.getGrantType().equals(grantType) &&
                 dimension.getName().equals(dimensionName)
         ){
@@ -140,7 +141,13 @@ public class AuthService {
      */
     public Credential createCredential(String userId, String password){
         Credential credential = new Credential();
-        User user = userRepository.findById(userId);
+        Optional<User> userOp = userRepository.findById(userId);
+        
+        if(userOp.isEmpty()) {
+        	return null;
+        }
+        
+        User user = userOp.get();
 
         credential.setUser(user);
         credential.setHash(PasswordEncoderUtil.encodePassword(password));
