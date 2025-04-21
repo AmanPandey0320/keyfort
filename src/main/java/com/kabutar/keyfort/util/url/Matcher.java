@@ -40,10 +40,53 @@ public class Matcher {
 	}
 	
 	
-	
+	/**
+	 * 
+	 * @param client
+	 */
 	public void insert(Client client) {
 		TrieNode curr = this.root;
-		String redirectri = client.getRedirectUri();
+		String redirectUri = client.getRedirectUri();
+		int idx;
 		
+		for(int i=0;i<redirectUri.length();i++) {
+			if(redirectUri.charAt(i) == '*') {
+				break;
+			}
+			idx = (int)(redirectUri.charAt(i));
+			curr.setChildNode(idx, new TrieNode());
+			curr = curr.getChildNode(idx);
+		}
+		curr.setIsEnd();
+		curr.setClientId(client.getClientId());
+		
+		return;
+	}
+	
+	/**
+	 * 
+	 * @param url
+	 * @param clientId
+	 * @return
+	 */
+	public boolean match(String url,String clientId) {
+		
+		TrieNode curr = this.root;
+		int idx;
+		
+		for(int i=0;i<url.length();i++) {
+			if(curr.isEnd() && curr.getClientId().equals(clientId)) {
+				return true;
+			}
+			
+			idx = (int) (url.charAt(i));
+			curr = curr.getChildNode(idx);
+		}
+		
+		if(curr.isEnd() && curr.getClientId().equals(clientId)) {
+			return true;
+		}
+		
+		return false;
 	}
 }
