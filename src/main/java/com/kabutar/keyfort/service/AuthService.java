@@ -5,6 +5,8 @@ import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.repository.*;
 import com.kabutar.keyfort.util.PasswordEncoderUtil;
 import com.kabutar.keyfort.util.TokenGenerator;
+import com.kabutar.keyfort.util.url.Matcher;
+
 import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,9 @@ public class AuthService {
 
     @Autowired
     private RoleService roleService;
+    
+    @Autowired
+    private Matcher matcher;
 
     /**
      *
@@ -56,7 +61,7 @@ public class AuthService {
 
         if(
                 client.getClientSecret().equals(clientSecret) &&
-                client.getRedirectUri().startsWith(redirectUri) &&
+                matcher.match(redirectUri, clientId) &&
                 client.getGrantType().equals(grantType) &&
                 dimension.getName().equals(dimensionName)
         ){

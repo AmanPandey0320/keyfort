@@ -37,6 +37,9 @@ public class Matcher {
 		
 		this.root = new TrieNode();
 		ArrayList<Client> clients = this.clientRepo.getAllClients();
+		for(Client client: clients) {
+			this.insert(client);
+		}
 	}
 	
 	
@@ -47,15 +50,13 @@ public class Matcher {
 	public void insert(Client client) {
 		TrieNode curr = this.root;
 		String redirectUri = client.getRedirectUri();
-		int idx;
 		
 		for(int i=0;i<redirectUri.length();i++) {
 			if(redirectUri.charAt(i) == '*') {
 				break;
 			}
-			idx = (int)(redirectUri.charAt(i));
-			curr.setChildNode(idx, new TrieNode());
-			curr = curr.getChildNode(idx);
+			curr.setChildNode(redirectUri.charAt(i), new TrieNode());
+			curr = curr.getChildNode(redirectUri.charAt(i));
 		}
 		curr.setIsEnd();
 		curr.setClientId(client.getClientId());
@@ -72,18 +73,36 @@ public class Matcher {
 	public boolean match(String url,String clientId) {
 		
 		TrieNode curr = this.root;
-		int idx;
+		int len = url.length();
 		
 		for(int i=0;i<url.length();i++) {
-			if(curr.isEnd() && curr.getClientId().equals(clientId)) {
+			if(curr == null) {
+				return false;
+			}
+			
+			if(this.isMatch(curr, clientId)) {
 				return true;
 			}
 			
-			idx = (int) (url.charAt(i));
-			curr = curr.getChildNode(idx);
+			curr = curr.getChildNode(url.charAt(i));
 		}
 		
-		if(curr.isEnd() && curr.getClientId().equals(clientId)) {
+		if(this.isMatch(curr, clientId)) {
+			return true;
+		}
+		
+		return false;
+	}
+	
+	
+	private boolean isMatch(TrieNode node, String clientId) {
+		if(node.isEnd() && node.getClientId().equals(clientId)) {
+			return true;
+		}
+		
+		TrieNode next = node.getChildNode('/');
+		
+		if(next != null && next.isEnd() && next.getClientId().equals(clientId)) {
 			return true;
 		}
 		

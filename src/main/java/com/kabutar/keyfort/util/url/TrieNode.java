@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TrieNode {
-	private Map<Integer,TrieNode> childNodes;
+	private Map<Character,TrieNode> childNodes;
 	private boolean isEnd;
 	private String clientId;
 	
@@ -14,11 +14,11 @@ public class TrieNode {
 		this.clientId = null;
 	}
 	
-	public TrieNode getChildNode(int idx) {
+	public TrieNode getChildNode(Character idx) {
 		return this.childNodes.get(idx);
 	}
 	
-	public void setChildNode(int idx, TrieNode node) {
+	public void setChildNode(Character idx, TrieNode node) {
 		this.childNodes.put(idx, node);
 	}
 	
