@@ -4,6 +4,7 @@ import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 
 import com.kabutar.keyfort.Entity.Client;
 import com.kabutar.keyfort.repository.ClientRepository;
@@ -16,7 +17,7 @@ import jakarta.annotation.PostConstruct;
  * 
  * HOW IT WORKS: A spring component intializes has a 
  * post construct method which reads all redirect uris 
- * of all clients from db and populates them isn trie
+ * of all clients from db and populates them in trie
  * at the end of every trie node where the url ends it
  * has clientid and if after matching url, it returns the 
  * clientid of the redirect uri 
@@ -48,18 +49,15 @@ public class Matcher {
 	 * @param client
 	 */
 	public void insert(Client client) {
-		TrieNode curr = this.root;
-		String redirectUri = client.getRedirectUri();
-		
-		for(int i=0;i<redirectUri.length();i++) {
-			if(redirectUri.charAt(i) == '*') {
-				break;
-			}
-			curr.setChildNode(redirectUri.charAt(i), new TrieNode());
-			curr = curr.getChildNode(redirectUri.charAt(i));
-		}
-		curr.setIsEnd();
-		curr.setClientId(client.getClientId());
+		 String[] uriParts = client.getRedirectUri().split("/");
+         TrieNode node = root;
+         
+         for (String part : uriParts) {
+             if (part.isEmpty()) continue;
+             node = node.setChildNode(part, new TrieNode());
+         }
+         node.setIsEnd();
+         node.setClientId(client.getClientId());
 		
 		return;
 	}
@@ -73,39 +71,60 @@ public class Matcher {
 	public boolean match(String url,String clientId) {
 		
 		TrieNode curr = this.root;
-		int len = url.length();
+		String urlWithOutQuery = url;
 		
-		for(int i=0;i<url.length();i++) {
-			if(curr == null) {
-				return false;
-			}
-			
-			if(this.isMatch(curr, clientId)) {
-				return true;
-			}
-			
-			curr = curr.getChildNode(url.charAt(i));
+		if(url.contains("?")) {
+			urlWithOutQuery = url.split("\\?")[0];
 		}
 		
-		if(this.isMatch(curr, clientId)) {
-			return true;
-		}
+		String[] urlParts = urlWithOutQuery.split("/");
 		
-		return false;
+		String matchedClientId = this.matchRecursive(urlParts, 0, curr);
+		
+		return clientId.equals(matchedClientId);
 	}
 	
 	
-	private boolean isMatch(TrieNode node, String clientId) {
-		if(node.isEnd() && node.getClientId().equals(clientId)) {
-			return true;
-		}
-		
-		TrieNode next = node.getChildNode('/');
-		
-		if(next != null && next.isEnd() && next.getClientId().equals(clientId)) {
-			return true;
-		}
-		
-		return false;
-	}
+	/**
+	 * 
+	 * @param parts
+	 * @param index
+	 * @param node
+	 * @return
+	 */
+	private String matchRecursive(String[] parts, int index, TrieNode node) {
+		// wildcard match: * (matches any one segment)
+        if (node.hasChild("*")) {
+            String result = matchRecursive(parts, index + 1, node.getChildNode("*"));
+            if (result != null) return result;
+        }
+        
+        if (index >= parts.length) {
+            if (node.isEnd()) return node.getClientId();
+            return null;
+        }
+
+        String segment = parts[index];
+        
+        // encounters a blank segment, skip it
+        if(segment.isEmpty()) {
+        	return this.matchRecursive(parts, index+1, node);
+        }
+        
+        // Exact match
+        if (node.hasChild(segment)) {
+            String result = this.matchRecursive(parts, index + 1, node.getChildNode(segment));
+            if (result != null) return result;
+        }
+
+        // deep wildcard match: ** (matches remaining segments)
+        if (node.hasChild("**")) {
+            for (int i = index; i <= parts.length; i++) {
+                String result = matchRecursive(parts, i, node.getChildNode("**"));
+                if (result != null) return result;
+            }
+        }
+
+        return null;
+    }
 }
