@@ -3,6 +3,8 @@ package com.kabutar.keyfort.dto;
 public class TokenDto {
     private String token;
     private String grantType;
+    
+    public TokenDto() {}
 
     public TokenDto(String token, String grantType) {
         this.token = token;

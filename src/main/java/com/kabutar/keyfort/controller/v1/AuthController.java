@@ -39,23 +39,30 @@ public class AuthController {
 
 	@PostMapping("/login_action")
 	public ResponseEntity<?> loginAction(
-			@RequestParam String clientId,
+			@RequestParam("clientId") String clientId,
 			@RequestBody UserDto userDto,
-			@PathVariable String dimension
+			@PathVariable("dimension") String dimension
 	){
-		User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword(), clientId, dimension);
-		if(user != null){
-			Token token = authService.getAuthTokenForUser(user);
+		try {
+			User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword(), clientId, dimension);
+			if(user != null){
+				Token token = authService.getAuthTokenForUser(user);
+				return new ResponseHandler()
+						.status(HttpStatus.OK)
+						.data(
+								List.of( Map.of("authorizationCode",token.getToken()) )
+						)
+						.build();
+			}
 			return new ResponseHandler()
-					.status(HttpStatus.OK)
-					.data(
-							List.of( Map.of("authorizationCode",token.getToken()) )
-					)
+					.status(HttpStatus.UNAUTHORIZED)
+					.build();
+		}catch(Exception e) {
+			return new ResponseHandler()
+					.error(List.of(e.getMessage()))
+					.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.build();
 		}
-		return new ResponseHandler()
-				.status(HttpStatus.UNAUTHORIZED)
-				.build();
 	}
 
 	/**
@@ -67,8 +74,8 @@ public class AuthController {
 	@GetMapping("/token")
 	public ResponseEntity<?> validateToken(
 			@RequestHeader(name = "authorization") String authorization,
-			@RequestParam String resourceUrl,
-			@PathVariable String dimension
+			@RequestParam("resourceUrl") String resourceUrl,
+			@PathVariable("dimension") String dimension
 	){
 		String token = authorization.replaceFirst("^Bearer ","");
 
@@ -91,7 +98,7 @@ public class AuthController {
 	@PostMapping("/token")
 	public ResponseEntity<?> token(
 			@RequestBody TokenDto tokenDto,
-			@PathVariable String dimension
+			@PathVariable("dimension") String dimension
 	){
 		try{
 			Map<String,Object> tokens = authService.exchangeForTokens(tokenDto.getToken(),tokenDto.getGrantType(), dimension);
