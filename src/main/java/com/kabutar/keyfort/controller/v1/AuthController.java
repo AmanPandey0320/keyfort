@@ -55,6 +55,7 @@ public class AuthController {
 						.build();
 			}
 			return new ResponseHandler()
+					.error(List.of("Invalid credentials!"))
 					.status(HttpStatus.UNAUTHORIZED)
 					.build();
 		}catch(Exception e) {
