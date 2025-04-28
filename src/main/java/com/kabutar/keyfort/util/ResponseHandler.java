@@ -1,7 +1,11 @@
 package com.kabutar.keyfort.util;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import com.kabutar.keyfort.http.Cookie;
+
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -9,9 +13,18 @@ import java.util.Map;
 public class ResponseHandler {
 
     private HttpStatus status;
-    private List<String> error = Collections.emptyList();
-    private List<String> message = Collections.emptyList();
-    private List<Object> data = Collections.emptyList();
+    private List<String> error;
+    private List<String> message;
+    private List<Object> data;
+    private HttpHeaders httpHeaders;
+    
+    public ResponseHandler() {
+    	this.error = Collections.emptyList();
+    	this.message = Collections.emptyList();
+    	this.data = Collections.emptyList();
+    	this.status = HttpStatus.OK;
+    	this.httpHeaders = new HttpHeaders();
+    }
 
     public ResponseHandler status(HttpStatus status) {
         this.status = status;
@@ -32,12 +45,21 @@ public class ResponseHandler {
         this.data = data;
         return this;
     }
+    
+    public ResponseHandler cookie(Cookie cookie) {
+    	this.httpHeaders.add("Set-Cookie",cookie.getCookie());
+    	return this;
+    }
 
     public ResponseEntity<?> build() {
-        return ResponseEntity.status(status).body(Map.of(
-                "error", error,
-                "message", message,
-                "data", data
-        ));
+        return ResponseEntity
+        		.status(status)
+        		.headers(httpHeaders)
+        		.body(
+        				Map.of(
+        						"error", error,
+        						"message", message,
+        						"data", data)
+        		);
     }
 }

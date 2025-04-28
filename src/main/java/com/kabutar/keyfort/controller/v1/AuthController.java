@@ -7,6 +7,7 @@ import com.kabutar.keyfort.Entity.User;
 import com.kabutar.keyfort.dto.ClientDto;
 import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;
+import com.kabutar.keyfort.http.Cookie;
 import com.kabutar.keyfort.service.AuthService;
 import com.kabutar.keyfort.service.JwtService;
 import com.kabutar.keyfort.util.ResponseHandler;
@@ -109,8 +110,14 @@ public class AuthController {
 						.status(HttpStatus.UNAUTHORIZED)
 						.build();
 			}
+			
+			Cookie accessTokenCookie = new Cookie("KF_ACCESS_TOKEN",(String) tokens.get("access"),true,true,"strict",60 * 15);
+			Cookie refreshTokenCookie = new Cookie("KF_REFRESH_TOKEN",(String) tokens.get("refresh"),true,true,"strict",60 * 60);
+			
 
 			return new ResponseHandler()
+					.cookie(accessTokenCookie)
+					.cookie(refreshTokenCookie)
 					.data(List.of(tokens))
 					.status(HttpStatus.OK)
 					.build();
