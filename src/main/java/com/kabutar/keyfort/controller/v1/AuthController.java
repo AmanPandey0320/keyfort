@@ -118,7 +118,7 @@ public class AuthController {
 			return new ResponseHandler()
 					.cookie(accessTokenCookie)
 					.cookie(refreshTokenCookie)
-					.data(List.of(tokens))
+					.data(List.of(tokens)) //TODO: remove this
 					.status(HttpStatus.OK)
 					.build();
 
