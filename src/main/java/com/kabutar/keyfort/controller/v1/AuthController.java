@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.kabutar.keyfort.Entity.Token;
 import com.kabutar.keyfort.Entity.User;
+import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.dto.ClientDto;
 import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;
@@ -75,14 +76,20 @@ public class AuthController {
 	 */
 	@GetMapping("/token")
 	public ResponseEntity<?> validateToken(
-			@RequestHeader(name = "authorization") String authorization,
+			@CookieValue(value="KF_ACCESS_TOKEN") String accessToken,
+			@CookieValue(value="KF_REFRESH_TOKEN") String refreshToken,
 			@RequestParam("resourceUrl") String resourceUrl,
 			@PathVariable("dimension") String dimension
 	){
-		String token = authorization.replaceFirst("^Bearer ","");
 
-		if(authService.validateAccessToken(token,resourceUrl,dimension)){
+		if(authService.validateAccessToken(accessToken,resourceUrl,dimension)){
+			Map<String,Object> tokens = authService.exchangeForTokens(refreshToken, AuthConstant.TokenType.REFRESH, dimension);
+			Cookie accessTokenCookie = new Cookie("KF_ACCESS_TOKEN",(String) tokens.get("access"),true,true,"strict",60 * 15);
+			Cookie refreshTokenCookie = new Cookie("KF_REFRESH_TOKEN",(String) tokens.get("refresh"),true,true,"strict",60 * 60);
+			
 			return new ResponseHandler()
+					.cookie(refreshTokenCookie)
+					.cookie(accessTokenCookie)
 					.status(HttpStatus.OK)
 					.build();
 		}
@@ -118,7 +125,6 @@ public class AuthController {
 			return new ResponseHandler()
 					.cookie(accessTokenCookie)
 					.cookie(refreshTokenCookie)
-					.data(List.of(tokens)) //TODO: remove this
 					.status(HttpStatus.OK)
 					.build();
 
