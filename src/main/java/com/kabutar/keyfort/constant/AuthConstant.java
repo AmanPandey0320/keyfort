@@ -23,4 +23,9 @@ public class AuthConstant {
         static public String ROLE = "role";
         static public String CLIENT = "client";
     }
+    
+    public static class CookieType{
+    	static public String ACCESS_TOKEN = "KF_ACCESS_TOKEN";
+    	static public String REFRESH_TOKEN = "KF_REFRESH_TOKEN";
+    }
 }

@@ -84,8 +84,8 @@ public class AuthController {
 
 		if(authService.validateAccessToken(accessToken,resourceUrl,dimension)){
 			Map<String,Object> tokens = authService.exchangeForTokens(refreshToken, AuthConstant.TokenType.REFRESH, dimension);
-			Cookie accessTokenCookie = new Cookie("KF_ACCESS_TOKEN",(String) tokens.get("access"),true,true,"strict",60 * 15);
-			Cookie refreshTokenCookie = new Cookie("KF_REFRESH_TOKEN",(String) tokens.get("refresh"),true,true,"strict",60 * 60);
+			Cookie accessTokenCookie = new Cookie(AuthConstant.CookieType.ACCESS_TOKEN,(String) tokens.get("access"),true,true,"strict",60 * 15);
+			Cookie refreshTokenCookie = new Cookie(AuthConstant.CookieType.REFRESH_TOKEN,(String) tokens.get("refresh"),true,true,"strict",60 * 60);
 			
 			return new ResponseHandler()
 					.cookie(refreshTokenCookie)
