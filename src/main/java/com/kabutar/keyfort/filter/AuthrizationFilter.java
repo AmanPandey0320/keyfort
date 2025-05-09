@@ -64,14 +64,14 @@ public class AuthrizationFilter extends OncePerRequestFilter {
 		String path = request.getRequestURI();
 		String method = request.getMethod();
 		
-//		for(int i=0;i<this.patternSize;i++) {
-//			if(this.patterns.get(i).matches(PathContainer.parsePath(path))
-//					&& this.authConfig.getPreAuthnUrls().get(i).getMethod().equals(method)
-//					) {
-//				System.out.println("Its a match");
-//				return true;
-//			}
-//		}
+		for(int i=0;i<this.patternSize;i++) {
+			if(this.patterns.get(i).matches(PathContainer.parsePath(path))
+					&& this.authConfig.getPreAuthnUrls().get(i).getMethod().equals(method)
+					) {
+				System.out.println("Its a match");
+				return true;
+			}
+		}
 		return false;
 	}
 	
