@@ -3,3 +3,12 @@ security:
     secret: 'some-super-secret-some-super-secret-some-super-secret'
     expire: 1800
     algorithm: 'HS256'
+  auth:
+    isAuthzProtectionEnabled: true
+    preAuthnUrls:
+       - path: "/api/v1/auth/*/login_action"
+         method: "POST"
+       - path: "/api/v1/auth/*/authz_client"
+         method: "POST"
+       - path: "/api/v1/auth/*/token"
+         method: "POST"
