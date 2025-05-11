@@ -141,6 +141,7 @@ public class AuthController {
 	@PostMapping("/authz_client")
 	public ResponseEntity<?> authorizeClient(
 			@RequestBody ClientDto client,
+			@CookieValue(value="KF_SESSION_ID", required=false) String sessionId,
 			@PathVariable("dimension") String dimension
 	){
 		Session session = authService.isClientValid(
@@ -148,12 +149,14 @@ public class AuthController {
 				client.getClientSecret(),
 				client.getRedirectUri(),
 				client.getGrantType(),
-				dimension);
+				sessionId,
+				dimension
+				);
 
 		if(session != null){
 			//success
 			logger.info("Client with id: {}, requested authorization, with session id {}",client.getClientId(),session.getId());
-			Cookie sessionCookie = new Cookie(AuthConstant.CookieType.SESSION_ID,(String) session.getId(),true,true,"strict",60 * 15);
+			Cookie sessionCookie = new Cookie(AuthConstant.CookieType.SESSION_ID,session.getId(),true,true,"strict",60 * 15);
 			return new ResponseHandler()
 					.cookie(sessionCookie)
 					.status(HttpStatus.OK)

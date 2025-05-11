@@ -51,6 +51,7 @@ public class AuthrizationFilter extends OncePerRequestFilter {
 		Map<String,Cookie> cookies = List.of(((request.getCookies() == null)? new Cookie[0]:request.getCookies())).stream().collect(Collectors.toMap(Cookie::getName, c -> c));
 		String forwardHost = request.getHeader("X-Forwarded-Host");
 		String forwardProtocol = request.getHeader("X-Forwarded-Proto");
+		
 		if(!(cookies.containsKey(AuthConstant.CookieType.ACCESS_TOKEN) && cookies.containsKey(AuthConstant.CookieType.REFRESH_TOKEN))) {
 			response.sendRedirect(forwardProtocol+"://"+forwardHost+"/console/auth/signin");
 			return;

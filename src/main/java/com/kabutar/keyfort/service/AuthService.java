@@ -58,6 +58,7 @@ public class AuthService {
             String clientSecret,
             String redirectUri,
             String grantType,
+            String sessionId,
             String dimensionName
     ){
         Client client = clientRepository.findByClientId(clientId);
@@ -70,11 +71,22 @@ public class AuthService {
                 dimension.getName().equals(dimensionName)
         ){
             //success
-        	Session session = new Session();
-        	session.setId(IDGenerator.generateUniqueId());
-        	session.setClient(client);
+        	Session session = null;
         	
-        	sessionRepository.save(session);
+        	if(sessionId != null) {
+        		//may have existing session
+        		session = sessionRepository.getReferenceById(sessionId);
+        	}
+        	
+        	if(session == null){
+        		//create new session
+        		session = new Session();
+            	session.setId(IDGenerator.generateUniqueId());
+            	session.setClient(client);
+            	
+            	sessionRepository.save(session);
+        	}
+        	
         	
             return session;
         }
