@@ -33,8 +33,11 @@ public class User {
     @OneToMany
     private List<Credential> credentials;
 
-    @OneToMany
+    @OneToMany(fetch = FetchType.LAZY)
     private List<Token> tokens;
+    
+    @OneToMany(fetch = FetchType.LAZY)
+    private List<Session> sessions;
 
     public String getId() {
         return id;

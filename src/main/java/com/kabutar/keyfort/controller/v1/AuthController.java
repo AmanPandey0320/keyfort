@@ -2,6 +2,7 @@ package com.kabutar.keyfort.controller.v1;
 
 import java.util.*;
 
+import com.kabutar.keyfort.Entity.Session;
 import com.kabutar.keyfort.Entity.Token;
 import com.kabutar.keyfort.Entity.User;
 import com.kabutar.keyfort.constant.AuthConstant;
@@ -26,9 +27,6 @@ public class AuthController {
 
 	@Autowired
 	private AuthService authService;
-
-	@Autowired
-	private JwtService jwtService;
 	
 	private final Logger logger  = LogManager.getLogger(AuthController.class);
 
@@ -45,6 +43,7 @@ public class AuthController {
 			@RequestBody UserDto userDto,
 			@PathVariable("dimension") String dimension
 	){
+		logger.info("Entering login_action controller");
 		try {
 			User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword(), clientId, dimension);
 			if(user != null){
@@ -118,8 +117,8 @@ public class AuthController {
 						.build();
 			}
 			
-			Cookie accessTokenCookie = new Cookie("KF_ACCESS_TOKEN",(String) tokens.get("access"),true,true,"strict",60 * 15);
-			Cookie refreshTokenCookie = new Cookie("KF_REFRESH_TOKEN",(String) tokens.get("refresh"),true,true,"strict",60 * 60);
+			Cookie accessTokenCookie = new Cookie(AuthConstant.CookieType.ACCESS_TOKEN,(String) tokens.get("access"),true,true,"strict",60 * 15);
+			Cookie refreshTokenCookie = new Cookie(AuthConstant.CookieType.REFRESH_TOKEN,(String) tokens.get("refresh"),true,true,"strict",60 * 60);
 			
 
 			return new ResponseHandler()
@@ -144,17 +143,19 @@ public class AuthController {
 			@RequestBody ClientDto client,
 			@PathVariable("dimension") String dimension
 	){
-
-		if(authService.isClientValid(
+		Session session = authService.isClientValid(
 				client.getClientId(),
 				client.getClientSecret(),
 				client.getRedirectUri(),
 				client.getGrantType(),
-				dimension
-		)){
+				dimension);
+
+		if(session != null){
 			//success
-			logger.info("Client with id: {}, requested authorization",client.getClientId());
+			logger.info("Client with id: {}, requested authorization, with session id {}",client.getClientId(),session.getId());
+			Cookie sessionCookie = new Cookie(AuthConstant.CookieType.SESSION_ID,(String) session.getId(),true,true,"strict",60 * 15);
 			return new ResponseHandler()
+					.cookie(sessionCookie)
 					.status(HttpStatus.OK)
 					.build();
 		}

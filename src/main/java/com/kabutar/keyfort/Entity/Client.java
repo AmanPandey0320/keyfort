@@ -16,6 +16,9 @@ public class Client {
 
 	@OneToMany(mappedBy = "client")
 	private List<User> users;
+	
+	@OneToMany
+	private List<Session> sessions;
 
 	@ManyToOne
 	@JoinColumn(name = "dimension_id", nullable = false)

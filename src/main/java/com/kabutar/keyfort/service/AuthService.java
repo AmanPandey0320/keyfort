@@ -3,6 +3,7 @@ package com.kabutar.keyfort.service;
 import com.kabutar.keyfort.Entity.*;
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.repository.*;
+import com.kabutar.keyfort.util.IDGenerator;
 import com.kabutar.keyfort.util.PasswordEncoderUtil;
 import com.kabutar.keyfort.util.TokenGenerator;
 import com.kabutar.keyfort.util.url.Matcher;
@@ -34,6 +35,9 @@ public class AuthService {
 
     @Autowired
     private DimensionRepository dimensionRepository;
+    
+    @Autowired
+    private SessionRepository sessionRepository;
 
     @Autowired
     private JwtService jwtService;
@@ -49,7 +53,7 @@ public class AuthService {
      *
      * @return
      */
-    public boolean isClientValid(
+    public Session isClientValid(
             String clientId,
             String clientSecret,
             String redirectUri,
@@ -66,10 +70,16 @@ public class AuthService {
                 dimension.getName().equals(dimensionName)
         ){
             //success
-            return true;
+        	Session session = new Session();
+        	session.setId(IDGenerator.generateUniqueId());
+        	session.setClient(client);
+        	
+        	sessionRepository.save(session);
+        	
+            return session;
         }
 
-        return false;
+        return null;
     }
 
     /**
