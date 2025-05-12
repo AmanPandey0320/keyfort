@@ -144,21 +144,17 @@ public class AuthController {
 			@CookieValue(value="KF_SESSION_ID", required=false) String sessionId,
 			@PathVariable("dimension") String dimension
 	){
-		Session session = authService.isClientValid(
+
+		if(authService.isClientValid(
 				client.getClientId(),
 				client.getClientSecret(),
 				client.getRedirectUri(),
 				client.getGrantType(),
-				sessionId,
 				dimension
-				);
-
-		if(session != null){
+				)){
 			//success
-			logger.info("Client with id: {}, requested authorization, with session id {}",client.getClientId(),session.getId());
-			Cookie sessionCookie = new Cookie(AuthConstant.CookieType.SESSION_ID,session.getId(),true,true,"strict",60 * 15);
+			logger.info("Client with id: {}, requested authorization",client.getClientId());
 			return new ResponseHandler()
-					.cookie(sessionCookie)
 					.status(HttpStatus.OK)
 					.build();
 		}

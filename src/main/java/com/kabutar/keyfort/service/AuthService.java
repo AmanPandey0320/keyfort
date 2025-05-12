@@ -53,12 +53,11 @@ public class AuthService {
      *
      * @return
      */
-    public Session isClientValid(
+    public boolean isClientValid(
             String clientId,
             String clientSecret,
             String redirectUri,
             String grantType,
-            String sessionId,
             String dimensionName
     ){
         Client client = clientRepository.findByClientId(clientId);
@@ -70,28 +69,10 @@ public class AuthService {
                 client.getGrantType().equals(grantType) &&
                 dimension.getName().equals(dimensionName)
         ){
-            //success
-        	Session session = null;
-        	
-        	if(sessionId != null) {
-        		//may have existing session
-        		session = sessionRepository.getReferenceById(sessionId);
-        	}
-        	
-        	if(session == null){
-        		//create new session
-        		session = new Session();
-            	session.setId(IDGenerator.generateUniqueId());
-            	session.setClient(client);
-            	
-            	sessionRepository.save(session);
-        	}
-        	
-        	
-            return session;
+           return true;
         }
 
-        return null;
+        return false;
     }
 
     /**
