@@ -1,22 +1,22 @@
 package com.kabutar.keyfort.util;
 
-import javax.crypto.KeyGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
+import java.security.SecureRandom;
 
 public class TokenGenerator {
-    private static final KeyGenerator keyGenerator;
 
-    static {
-        try {
-            keyGenerator = KeyGenerator.getInstance("AES");
-            keyGenerator.init(128);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Error initializing KeyGenerator", e);
-        }
+    private static final String ALLOWED_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    private static final SecureRandom secureRandom = new SecureRandom();
+
+    public static String generateToken128() {
+        return generateToken(16) + System.currentTimeMillis(); // 16 chars + timestamp
     }
 
-    public static String generateToken128(){
-        return Base64.getEncoder().encodeToString(keyGenerator.generateKey().getEncoded()) + System.currentTimeMillis();
+    private static String generateToken(int length) {
+        StringBuilder token = new StringBuilder(length);
+        for (int i = 0; i < length; i++) {
+            int index = secureRandom.nextInt(ALLOWED_CHARS.length());
+            token.append(ALLOWED_CHARS.charAt(index));
+        }
+        return token.toString();
     }
 }

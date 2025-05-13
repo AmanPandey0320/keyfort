@@ -196,7 +196,9 @@ public class AuthService {
      * @return
      */
     public Map<String,Object> exchangeForTokens(String token,String grantType, String dimension){
+    	System.out.println("AMAN: "+token);
         Token savedToken = tokenRepository.findByToken(token);
+        
 
         if(!this.isTokenValid(savedToken)){
             return Map.of("isValid",false);

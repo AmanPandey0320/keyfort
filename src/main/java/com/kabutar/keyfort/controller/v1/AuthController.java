@@ -123,6 +123,10 @@ public class AuthController {
 			return new ResponseHandler()
 					.cookie(accessTokenCookie)
 					.cookie(refreshTokenCookie)
+					.data(List.of(Map.of(
+							"accessToken", tokens.get("access"),
+							"refreshToken", tokens.get("refresh")
+					)))
 					.status(HttpStatus.OK)
 					.build();
 
