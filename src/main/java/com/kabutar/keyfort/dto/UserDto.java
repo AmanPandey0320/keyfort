@@ -3,12 +3,14 @@ package com.kabutar.keyfort.dto;
 public class UserDto {
     private String username;
     private String password;
+    private String clientId;
     
     public UserDto() {}
 
-    public UserDto(String username, String password) {
+    public UserDto(String username, String password, String clientId) {
         this.username = username;
         this.password = password;
+        this.clientId = clientId;
     }
 
     public String getUsername() {
@@ -26,4 +28,14 @@ public class UserDto {
     public void setPassword(String password) {
         this.password = password;
     }
+
+	public String getClientId() {
+		return clientId;
+	}
+
+	public void setClientId(String clientId) {
+		this.clientId = clientId;
+	}
+    
+    
 }

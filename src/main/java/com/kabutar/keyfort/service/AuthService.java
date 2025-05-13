@@ -292,5 +292,22 @@ public class AuthService {
         }
         return this.isTokenValid(token);
     }
+    
+    
+    public String getReirectUriWithAuthCode(String uri,String authCode) {
+    	StringBuilder sb = new StringBuilder();
+    	sb.append(uri);
+    	
+    	if(uri.contains("?")) {
+    		//already has an query
+    		sb.append("&auth_code=");
+    	}else {
+    		sb.append("?auth_code=");
+    	}
+    	
+    	sb.append(authCode);
+    	
+    	return sb.toString();
+    }
 
 }

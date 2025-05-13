@@ -50,6 +50,12 @@ public class ResponseHandler {
     	this.httpHeaders.add("Set-Cookie",cookie.getCookie());
     	return this;
     }
+    
+    public ResponseHandler redirect(String uri) {
+    	this.httpHeaders.add("Location", uri);
+    	
+    	return this;
+    }
 
     public ResponseEntity<?> build() {
         return ResponseEntity

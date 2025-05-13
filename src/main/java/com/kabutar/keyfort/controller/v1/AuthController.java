@@ -2,6 +2,7 @@ package com.kabutar.keyfort.controller.v1;
 
 import java.util.*;
 
+import com.kabutar.keyfort.Entity.Client;
 import com.kabutar.keyfort.Entity.Session;
 import com.kabutar.keyfort.Entity.Token;
 import com.kabutar.keyfort.Entity.User;
@@ -39,20 +40,18 @@ public class AuthController {
 
 	@PostMapping("/login_action")
 	public ResponseEntity<?> loginAction(
-			@RequestParam("clientId") String clientId,
 			@RequestBody UserDto userDto,
 			@PathVariable("dimension") String dimension
 	){
 		logger.info("Entering login_action controller");
 		try {
-			User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword(), clientId, dimension);
+			User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword(), userDto.getClientId()       , dimension);
+			
 			if(user != null){
 				Token token = authService.getAuthTokenForUser(user);
 				return new ResponseHandler()
 						.status(HttpStatus.OK)
-						.data(
-								List.of( Map.of("authorizationCode",token.getToken()) )
-						)
+						.data(List.of( Map.of("authorizationCode",token.getToken())))
 						.build();
 			}
 			return new ResponseHandler()
