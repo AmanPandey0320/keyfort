@@ -21,7 +21,7 @@ public class AuthConstant {
 
     public static class ClaimType{
         static public String ROLE = "role";
-        static public String CLIENT = "client";
+        static public String SESSION = "session";
     }
     
     public static class CookieType{

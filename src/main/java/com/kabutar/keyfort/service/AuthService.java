@@ -196,10 +196,8 @@ public class AuthService {
      * @return
      */
     public Map<String,Object> exchangeForTokens(String token,String grantType, String dimension){
-    	System.out.println("AMAN: "+token);
         Token savedToken = tokenRepository.findByToken(token);
         
-
         if(!this.isTokenValid(savedToken)){
             return Map.of("isValid",false);
         }
@@ -212,72 +210,45 @@ public class AuthService {
             return Map.of("isValid",false);
         }
 
-        String clientId = null;
-        String userName = null;
-        List<String> roles = null;
-        Token refreshToken = new Token();
-        Token accessToken = new Token();
-        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
-
-        if(savedToken.getType().equals(AuthConstant.TokenType.REFRESH)){
-            Claims claims = jwtService.extractAllClaim(token);
-            clientId = (String) claims.get(AuthConstant.ClaimType.CLIENT);
-            userName = claims.getSubject();
-            roles = (List<String>) claims.get(AuthConstant.ClaimType.ROLE);
-
-
-
-            if(!savedToken.getUser().getClient().getClientId().equals(clientId)){
-                return Map.of("isValid",false);
-            }
-
-            if(!savedToken.getUser().getUsername().equals(userName)){
-                return Map.of("isValid",false);
-            }
-        }else{
-            clientId = savedToken.getUser().getClient().getClientId();
-            userName = savedToken.getUser().getUsername();
-            roles = roleService.getRolesForUser(savedToken.getUser());
-        }
-
-        refreshToken.setToken(jwtService.generateToken(
-                Map.of(
-                        AuthConstant.ClaimType.ROLE,roles,
-                        AuthConstant.ClaimType.CLIENT,clientId
-                ),
-                userName,
-                AuthConstant.ExpiryTime.REFRESH_TOKEN
-        ));
-        refreshToken.setType(AuthConstant.TokenType.REFRESH);
-        refreshToken.setUser(savedToken.getUser());
-        refreshToken.setCreatedAt(currentTimestamp);
-        refreshToken.setValidTill(new Timestamp(currentTimestamp.getTime() + AuthConstant.ExpiryTime.REFRESH_TOKEN *1000  ));
-
-        accessToken.setToken(jwtService.generateToken(
-                Map.of(
-                        AuthConstant.ClaimType.ROLE,roles,
-                        AuthConstant.ClaimType.CLIENT,clientId
-                ),
-                userName,
-                AuthConstant.ExpiryTime.ACCESS_TOKEN
-        ));
-        accessToken.setType(AuthConstant.TokenType.ACCESS);
-        accessToken.setUser(savedToken.getUser());
-        accessToken.setValidTill(currentTimestamp);
-        accessToken.setValidTill(new Timestamp(currentTimestamp.getTime() + AuthConstant.ExpiryTime.ACCESS_TOKEN *1000  ));
-
+        User user = savedToken.getUser();
+        List<String> roles = roleService.getRolesForUser(savedToken.getUser());
+        Session session = new Session();
+        String accessToken = null;
+        String refreshToken = null;
+        
+        session.setAuthenticated(true);
+        session.setUser(user);
+        
+        //mark current auth token as invalid
         savedToken.setValid(false);
-
-        //save tokens
-        accessToken = tokenRepository.save(accessToken);
-        refreshToken = tokenRepository.save(refreshToken);
+        
+        //save to repository
         tokenRepository.save(savedToken);
-
-
+        sessionRepository.save(session);
+        
+        
+        accessToken = jwtService.generateToken(
+                Map.of(
+                        AuthConstant.ClaimType.ROLE,roles,
+                        AuthConstant.ClaimType.SESSION,session.getId()
+                ),
+                user.getUsername(),
+                AuthConstant.ExpiryTime.ACCESS_TOKEN
+        );
+        
+        refreshToken = jwtService.generateToken(
+                Map.of(
+                        AuthConstant.ClaimType.ROLE,roles,
+                        AuthConstant.ClaimType.SESSION,session.getId()
+                ),
+                user.getUsername(),
+                AuthConstant.ExpiryTime.REFRESH_TOKEN
+        );
+        
         return Map.of(
                 "isValid",true,
-                "refresh",refreshToken.getToken(),
-                "access",accessToken.getToken()
+                "refresh",refreshToken,
+                "access",accessToken
         );
     }
 

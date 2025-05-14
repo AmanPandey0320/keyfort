@@ -16,7 +16,7 @@ public class Token {
     private String token;
 
     @Column(nullable = false)
-    private String type = AuthConstant.TokenType.ACCESS;
+    private String type = AuthConstant.TokenType.AUTHORIZATION;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")

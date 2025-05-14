@@ -4,6 +4,7 @@ import java.util.Date;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,13 +17,10 @@ import jakarta.persistence.TemporalType;
 public class Session {
 	
 	@Id
+	@GeneratedValue(strategy = GenerationType.UUID)
 	private String id;
 	
-	@ManyToOne
-	@JoinColumn(name = "clientId", nullable = false)
-	private Client client;
-	
-	@ManyToOne
+	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "userId", nullable = true)
 	private User user;
 	
@@ -44,15 +42,7 @@ public class Session {
 	public void setId(String id) {
 		this.id = id;
 	}
-
-	public Client getClient() {
-		return client;
-	}
-
-	public void setClient(Client client) {
-		this.client = client;
-	}
-
+	
 	public User getUser() {
 		return user;
 	}
