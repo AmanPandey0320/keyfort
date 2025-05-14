@@ -69,7 +69,6 @@ public class AuthrizationFilter extends OncePerRequestFilter {
 			if(this.patterns.get(i).matches(PathContainer.parsePath(path))
 					&& this.authConfig.getPreAuthnUrls().get(i).getMethod().equals(method)
 					) {
-				System.out.println("Its a match");
 				return true;
 			}
 		}

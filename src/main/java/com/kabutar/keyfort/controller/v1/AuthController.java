@@ -68,47 +68,16 @@ public class AuthController {
 
 	/**
 	 *
-	 * @param authorization
-	 * @param resourceUrl
+	 * @param authcode
 	 * @return
 	 */
 	@GetMapping("/token")
-	public ResponseEntity<?> validateToken(
-			@CookieValue(value="KF_ACCESS_TOKEN") String accessToken,
-			@CookieValue(value="KF_REFRESH_TOKEN") String refreshToken,
-			@RequestParam("resourceUrl") String resourceUrl,
-			@PathVariable("dimension") String dimension
-	){
-
-		if(authService.validateAccessToken(accessToken,resourceUrl,dimension)){
-			Map<String,Object> tokens = authService.exchangeForTokens(refreshToken, AuthConstant.TokenType.REFRESH, dimension);
-			Cookie accessTokenCookie = new Cookie(AuthConstant.CookieType.ACCESS_TOKEN,(String) tokens.get("access"),true,true,"strict",60 * 15);
-			Cookie refreshTokenCookie = new Cookie(AuthConstant.CookieType.REFRESH_TOKEN,(String) tokens.get("refresh"),true,true,"strict",60 * 60);
-			
-			return new ResponseHandler()
-					.cookie(refreshTokenCookie)
-					.cookie(accessTokenCookie)
-					.status(HttpStatus.OK)
-					.build();
-		}
-
-		return new ResponseHandler()
-				.status(HttpStatus.UNAUTHORIZED)
-				.build();
-	}
-
-	/**
-	 *
-	 * @param tokenDto
-	 * @return
-	 */
-	@PostMapping("/token")
 	public ResponseEntity<?> token(
-			@RequestBody TokenDto tokenDto,
+			@RequestParam("code") String authCode,
 			@PathVariable("dimension") String dimension
 	){
 		try{
-			Map<String,Object> tokens = authService.exchangeForTokens(tokenDto.getToken(),tokenDto.getGrantType(), dimension);
+			Map<String,Object> tokens = authService.exchangeForTokens(authCode,AuthConstant.TokenType.AUTHORIZATION, dimension);
 
 			if(!((boolean) tokens.get("isValid"))){
 				return new ResponseHandler()
