@@ -3,23 +3,24 @@ package com.kabutar.keyfort.service;
 import com.kabutar.keyfort.Entity.*;
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.repository.*;
-import com.kabutar.keyfort.util.IDGenerator;
 import com.kabutar.keyfort.util.PasswordEncoderUtil;
 import com.kabutar.keyfort.util.TokenGenerator;
 import com.kabutar.keyfort.util.url.Matcher;
 
-import io.jsonwebtoken.Claims;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 @Service
 public class AuthService {
+	
+	private final Logger logger = LogManager.getLogger(AuthService.class);
 
     @Autowired
     private ClientRepository clientRepository;
@@ -89,21 +90,28 @@ public class AuthService {
                 user == null || !user.getClient().getClientId().equals(clientId) ||
                 !user.getClient().getDimension().getName().equals(dimension)
         ){
+        	logger.info("User with username: {} login failed for invalid dimension or clienti-id",username);
             return null;
         }
+        
+        logger.debug("User with username: {} found",user.getUsername());
+        
 
         List<Credential> credentialList = credentialRepository.findActiveCredentialsForUser(user.getId());
 
         if(credentialList.size() != 1){
             // user should have 1 active credential
+        	logger.info("User with username: {} has multiple active credentials",username);
             return null;
         }
         Credential credential = credentialList.get(0);
 
         if(PasswordEncoderUtil.matches(password,credential.getHash())){
+        	logger.info("User with username: {} login success for invalid credentials",username);
             return user;
         }
 
+        logger.info("User with username: {} login failed for invalid credentials",username);
         return null;
     }
 
@@ -124,6 +132,8 @@ public class AuthService {
         token.setValidTill(new Timestamp(currentTimestamp.getTime() + AuthConstant.ExpiryTime.AUTHZ_CODE *1000  ));
 
         token = tokenRepository.save(token);
+        
+        logger.debug("User with username: {} has an authcode",user.getUsername());
 
         return token;
     }
@@ -163,6 +173,8 @@ public class AuthService {
 
         credentialRepository.setAllUserCredentialsInactive(user.getId());
         credential = credentialRepository.save(credential);
+        
+        logger.debug("Credential created for user: {}",user.getUsername());
 
         return credential;
 
@@ -199,14 +211,17 @@ public class AuthService {
         Token savedToken = tokenRepository.findByToken(token);
         
         if(!this.isTokenValid(savedToken)){
+        	logger.debug("Token {} is not valid",token);
             return Map.of("isValid",false);
         }
 
         if(!savedToken.getType().equals(grantType)){
+        	logger.debug("Token {} does not have valid grants",token);
             return Map.of("isValid",false);
         }
 
         if(!savedToken.getUser().getClient().getDimension().getName().equals(dimension)){
+        	logger.debug("Token {} is not valid dimension",token);
             return Map.of("isValid",false);
         }
 
@@ -244,6 +259,8 @@ public class AuthService {
                 user.getUsername(),
                 AuthConstant.ExpiryTime.REFRESH_TOKEN
         );
+        
+        logger.debug("access token and new session generated for user: {}",user.getUsername());
         
         return Map.of(
                 "isValid",true,
