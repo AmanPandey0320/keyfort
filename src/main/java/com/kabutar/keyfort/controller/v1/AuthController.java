@@ -2,17 +2,12 @@ package com.kabutar.keyfort.controller.v1;
 
 import java.util.*;
 
-import com.kabutar.keyfort.Entity.Client;
-import com.kabutar.keyfort.Entity.Session;
 import com.kabutar.keyfort.Entity.Token;
 import com.kabutar.keyfort.Entity.User;
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.dto.ClientDto;
-import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;
-//import com.kabutar.keyfort.http.Cookie;
 import com.kabutar.keyfort.service.AuthService;
-import com.kabutar.keyfort.service.JwtService;
 import com.kabutar.keyfort.util.ResponseHandler;
 
 import jakarta.servlet.http.Cookie;
