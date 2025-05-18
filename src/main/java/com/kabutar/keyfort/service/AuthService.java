@@ -7,12 +7,16 @@ import com.kabutar.keyfort.util.PasswordEncoderUtil;
 import com.kabutar.keyfort.util.TokenGenerator;
 import com.kabutar.keyfort.util.url.Matcher;
 
+import io.jsonwebtoken.Claims;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -233,6 +237,8 @@ public class AuthService {
         
         session.setAuthenticated(true);
         session.setUser(user);
+        session.setCreatedAt(new Date(System.currentTimeMillis()));
+        session.setLastUsed(new Date(System.currentTimeMillis()));
         
         //mark current auth token as invalid
         savedToken.setValid(false);
@@ -275,12 +281,29 @@ public class AuthService {
      * @param resourceUrl
      * @return
      */
-    public boolean validateAccessToken(String jwt, String resourceUrl,String dimension) {
-        Token token = tokenRepository.findByToken(jwt);
-        if(!token.getUser().getClient().getDimension().getName().equals(dimension)){
-            return false;
+    @Transactional
+    public boolean validateAccessToken(String accessToken) {
+        Claims claims = jwtService.extractAllClaim(accessToken);
+        
+        String userName = claims.getSubject();
+        String sessionId = (String) claims.get(AuthConstant.ClaimType.SESSION);
+        
+        logger.debug("Validation session id {}",sessionId);
+        
+        Session session = sessionRepository.getReferenceById(sessionId);
+        logger.debug("recieved session id {}",session.getId());
+        
+        if(!(session.getId().equals(sessionId) && session.getUser().getUsername().equals(userName))) {
+        	return false;
         }
-        return this.isTokenValid(token);
+        
+        if((session.getLastUsed().getTime() + AuthConstant.ExpiryTime.ACCESS_TOKEN * 1000) <= System.currentTimeMillis()) {
+        	return false;
+        }
+        
+        //roles check to be implemented as part of rbac
+        
+        return true;
     }
     
     

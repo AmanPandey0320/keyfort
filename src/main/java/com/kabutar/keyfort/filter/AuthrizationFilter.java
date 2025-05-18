@@ -34,7 +34,6 @@ public class AuthrizationFilter extends OncePerRequestFilter {
 	
 	
 	
-	@Autowired
 	public AuthrizationFilter(AuthConfig authConfig, AuthService authService) {
 		super();
 		this.authConfig = authConfig;
@@ -53,6 +52,14 @@ public class AuthrizationFilter extends OncePerRequestFilter {
 		String forwardProtocol = request.getHeader("X-Forwarded-Proto");
 		
 		if(!(cookies.containsKey(AuthConstant.CookieType.ACCESS_TOKEN) && cookies.containsKey(AuthConstant.CookieType.REFRESH_TOKEN))) {
+			response.sendRedirect(forwardProtocol+"://"+forwardHost+"/console/auth/signin");
+			return;
+		}
+		
+		Cookie accessTokenCookie = cookies.get(AuthConstant.CookieType.ACCESS_TOKEN);
+		Cookie refreshTokenCookie = cookies.get(AuthConstant.CookieType.REFRESH_TOKEN);
+		
+		if(!authService.validateAccessToken(accessTokenCookie.getValue())) {
 			response.sendRedirect(forwardProtocol+"://"+forwardHost+"/console/auth/signin");
 			return;
 		}

@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kabutar.keyfort.util.ResponseHandler;
 
 @RestController
-@RequestMapping("/api/v1/console/{dimension}")
-public class ConsoleController {
+@RequestMapping("/api/v1/ui-ext/{dimension}")
+public class UIExtensionController {
 	
 	@GetMapping("/home")
 	public ResponseEntity<?> getConsoleData(@PathVariable("dimension") String dimension){
