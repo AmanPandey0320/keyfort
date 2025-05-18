@@ -10,10 +10,13 @@ import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.dto.ClientDto;
 import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;
-import com.kabutar.keyfort.http.Cookie;
+//import com.kabutar.keyfort.http.Cookie;
 import com.kabutar.keyfort.service.AuthService;
 import com.kabutar.keyfort.service.JwtService;
 import com.kabutar.keyfort.util.ResponseHandler;
+
+import jakarta.servlet.http.Cookie;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -85,9 +88,16 @@ public class AuthController {
 						.build();
 			}
 			
-			Cookie accessTokenCookie = new Cookie(AuthConstant.CookieType.ACCESS_TOKEN,(String) tokens.get("access"),true,true,"strict",60 * 15);
-			Cookie refreshTokenCookie = new Cookie(AuthConstant.CookieType.REFRESH_TOKEN,(String) tokens.get("refresh"),true,true,"strict",60 * 60);
+			Cookie accessTokenCookie = new Cookie(AuthConstant.CookieType.ACCESS_TOKEN,(String) tokens.get("access"));
+			Cookie refreshTokenCookie = new Cookie(AuthConstant.CookieType.REFRESH_TOKEN,(String) tokens.get("refresh"));
 			
+			accessTokenCookie.setHttpOnly(true);
+			accessTokenCookie.setMaxAge(AuthConstant.ExpiryTime.ACCESS_TOKEN);
+			accessTokenCookie.setSecure(true);
+			
+			refreshTokenCookie.setHttpOnly(true);
+			refreshTokenCookie.setMaxAge(AuthConstant.ExpiryTime.REFRESH_TOKEN);
+			refreshTokenCookie.setSecure(true);
 
 			return new ResponseHandler()
 					.cookie(accessTokenCookie)

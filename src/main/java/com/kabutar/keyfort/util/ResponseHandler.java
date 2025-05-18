@@ -4,7 +4,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import com.kabutar.keyfort.http.Cookie;
+import jakarta.servlet.http.Cookie;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,7 +47,7 @@ public class ResponseHandler {
     }
     
     public ResponseHandler cookie(Cookie cookie) {
-    	this.httpHeaders.add("Set-Cookie",cookie.getCookie());
+    	this.httpHeaders.add(HttpHeaders.SET_COOKIE,this.cookieToString(cookie));
     	return this;
     }
     
@@ -67,5 +67,32 @@ public class ResponseHandler {
         						"message", message,
         						"data", data)
         		);
+    }
+    
+    private String cookieToString(Cookie cookie) {
+StringBuilder builder = new StringBuilder();
+		
+		//add cookie value
+		builder.append(cookie.getName()+"="+cookie.getValue());
+		
+		//add Max-Age
+		builder.append("; Max-Age="+Integer.toString(cookie.getMaxAge()));
+		
+		//add Path
+		builder.append("; Path=/;");
+		
+		//add secure
+		if(cookie.getSecure()) {
+			builder.append("; Secure");
+		}
+		
+		//add Http-only
+		if(cookie.isHttpOnly()) {
+			builder.append("; HttpOnly");
+		}
+		
+		builder.append("; SameSite=strict");
+		
+		return builder.toString();
     }
 }
