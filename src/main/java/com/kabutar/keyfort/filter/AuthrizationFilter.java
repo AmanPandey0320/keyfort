@@ -52,7 +52,7 @@ public class AuthrizationFilter extends OncePerRequestFilter {
 		String forwardProtocol = request.getHeader("X-Forwarded-Proto");
 		
 		if(!(cookies.containsKey(AuthConstant.CookieType.ACCESS_TOKEN) && cookies.containsKey(AuthConstant.CookieType.REFRESH_TOKEN))) {
-			response.sendRedirect(forwardProtocol+"://"+forwardHost+"/console/auth/signin");
+			response.setStatus(403);
 			return;
 		}
 		
