@@ -80,6 +80,7 @@ public class AuthController {
 
 			if(!((boolean) tokens.get("isValid"))){
 				return new ResponseHandler()
+						.error((List<String>)tokens.getOrDefault("errors",List.of("Unexpected error")))
 						.status(HttpStatus.UNAUTHORIZED)
 						.build();
 			}

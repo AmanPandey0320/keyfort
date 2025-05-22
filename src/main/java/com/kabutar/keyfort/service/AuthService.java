@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -214,29 +215,34 @@ public class AuthService {
     public Map<String,Object> exchangeForTokens(String token,String clientSecret, String dimension){
         Token savedToken = tokenRepository.findByToken(token);
         boolean isValid = true;
+        List<String> errors = new ArrayList<>();
         
         if(isValid && !this.isTokenValid(savedToken)){
-        	logger.warn("Auth Token {} is not valid",token);
+        	logger.warn("Authentication code {} is not valid",token);
+        	errors.add("Invalid user");
             isValid = false;
         }
 
         if(isValid && !savedToken.getType().equals(AuthConstant.TokenType.AUTHORIZATION)){
-        	logger.warn("Auth Token {} does not have valid grants",token);
+        	logger.warn("Authentication code {} does not have valid grants",token);
+        	errors.add("Invalid grants");
         	isValid = false;
         }
 
         if(isValid && !savedToken.getUser().getClient().getDimension().getName().equals(dimension)){
-        	logger.warn("Auth Token {} does not have valid dimension",token);
+        	logger.warn("Authentication code {} does not belong to current dimension {}",token,dimension);
+        	errors.add("Invalid user or dimension");
         	isValid = false;
         }
         
         if(isValid && !savedToken.getUser().getClient().getClientSecret().equals(clientSecret)) {
-        	logger.warn("Token {} does not have valid client secret",token);
+        	logger.warn("Authentication code {} does not have valid client secret",token);
+        	errors.add("Invalid client");
         	isValid = false;
         }
         
         if(!isValid) {
-        	return Map.of("isValid",isValid);
+        	return Map.of("isValid",isValid, "errors",errors);
         }
 
         User user = savedToken.getUser();
@@ -281,7 +287,8 @@ public class AuthService {
         return Map.of(
                 "isValid",true,
                 "refresh",refreshToken,
-                "access",accessToken
+                "access",accessToken,
+                "errors",errors
         );
     }
 
