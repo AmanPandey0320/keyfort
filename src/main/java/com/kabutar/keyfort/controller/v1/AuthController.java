@@ -6,6 +6,7 @@ import com.kabutar.keyfort.Entity.Token;
 import com.kabutar.keyfort.Entity.User;
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.dto.ClientDto;
+import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;
 import com.kabutar.keyfort.service.AuthService;
 import com.kabutar.keyfort.util.ResponseHandler;
@@ -69,13 +70,13 @@ public class AuthController {
 	 * @param authcode
 	 * @return
 	 */
-	@GetMapping("/token")
+	@PostMapping("/token")
 	public ResponseEntity<?> token(
-			@RequestParam("code") String authCode,
+			@RequestBody TokenDto tokenDto,
 			@PathVariable("dimension") String dimension
 	){
 		try{
-			Map<String,Object> tokens = authService.exchangeForTokens(authCode,AuthConstant.TokenType.AUTHORIZATION, dimension);
+			Map<String,Object> tokens = authService.exchangeForTokens(tokenDto.getToken(),tokenDto.getClientSecret(), dimension);
 
 			if(!((boolean) tokens.get("isValid"))){
 				return new ResponseHandler()

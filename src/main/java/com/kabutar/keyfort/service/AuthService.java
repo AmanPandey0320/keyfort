@@ -211,22 +211,28 @@ public class AuthService {
      * @param grantType
      * @return
      */
-    public Map<String,Object> exchangeForTokens(String token,String grantType, String dimension){
+    public Map<String,Object> exchangeForTokens(String token,String clientSecret, String dimension){
         Token savedToken = tokenRepository.findByToken(token);
+        boolean isValid = true;
         
-        if(!this.isTokenValid(savedToken)){
-        	logger.debug("Token {} is not valid",token);
-            return Map.of("isValid",false);
+        if(isValid && !this.isTokenValid(savedToken)){
+        	logger.warn("Auth Token {} is not valid",token);
+            isValid = false;
         }
 
-        if(!savedToken.getType().equals(grantType)){
-        	logger.debug("Token {} does not have valid grants",token);
+        if(!savedToken.getType().equals(AuthConstant.TokenType.AUTHORIZATION)){
+        	logger.warn("Auth Token {} does not have valid grants",token);
             return Map.of("isValid",false);
         }
 
         if(!savedToken.getUser().getClient().getDimension().getName().equals(dimension)){
-        	logger.debug("Token {} is not valid dimension",token);
+        	logger.warn("Auth Token {} does not have valid dimension",token);
             return Map.of("isValid",false);
+        }
+        
+        if(!savedToken.getUser().getClient().getClientSecret().equals(clientSecret)) {
+        	logger.warn("Token {} does not have valid client secret",token);
+        	return Map.of("isValid",false);
         }
 
         User user = savedToken.getUser();

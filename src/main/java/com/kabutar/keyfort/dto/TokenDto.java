@@ -2,13 +2,13 @@ package com.kabutar.keyfort.dto;
 
 public class TokenDto {
     private String token;
-    private String grantType;
+    private String clientSecret;
     
     public TokenDto() {}
 
-    public TokenDto(String token, String grantType) {
+    public TokenDto(String token, String clientSecret) {
         this.token = token;
-        this.grantType = grantType;
+        this.clientSecret = clientSecret;
     }
 
     public String getToken() {
@@ -19,19 +19,18 @@ public class TokenDto {
         this.token = token;
     }
 
-    public String getGrantType() {
-        return grantType;
-    }
+	public String getClientSecret() {
+		return clientSecret;
+	}
 
-    public void setGrantType(String grantType) {
-        this.grantType = grantType;
-    }
+	public void setClientSecret(String clientSecret) {
+		this.clientSecret = clientSecret;
+	}
 
-    @Override
-    public String toString() {
-        return "TokenDto{" +
-                "token='" + token + '\'' +
-                ", grantType='" + grantType + '\'' +
-                '}';
-    }
+	@Override
+	public String toString() {
+		return "TokenDto [token=" + token + ", clientSecret=" + clientSecret + "]";
+	}
+
+    
 }
