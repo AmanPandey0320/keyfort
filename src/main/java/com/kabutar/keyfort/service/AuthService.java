@@ -220,19 +220,23 @@ public class AuthService {
             isValid = false;
         }
 
-        if(!savedToken.getType().equals(AuthConstant.TokenType.AUTHORIZATION)){
+        if(isValid && !savedToken.getType().equals(AuthConstant.TokenType.AUTHORIZATION)){
         	logger.warn("Auth Token {} does not have valid grants",token);
-            return Map.of("isValid",false);
+        	isValid = false;
         }
 
-        if(!savedToken.getUser().getClient().getDimension().getName().equals(dimension)){
+        if(isValid && !savedToken.getUser().getClient().getDimension().getName().equals(dimension)){
         	logger.warn("Auth Token {} does not have valid dimension",token);
-            return Map.of("isValid",false);
+        	isValid = false;
         }
         
-        if(!savedToken.getUser().getClient().getClientSecret().equals(clientSecret)) {
+        if(isValid && !savedToken.getUser().getClient().getClientSecret().equals(clientSecret)) {
         	logger.warn("Token {} does not have valid client secret",token);
-        	return Map.of("isValid",false);
+        	isValid = false;
+        }
+        
+        if(!isValid) {
+        	return Map.of("isValid",isValid);
         }
 
         User user = savedToken.getUser();
