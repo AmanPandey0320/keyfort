@@ -3,6 +3,7 @@ package com.kabutar.keyfort.service;
 import com.kabutar.keyfort.Entity.*;
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.repository.*;
+import com.kabutar.keyfort.util.Jwt;
 import com.kabutar.keyfort.util.PasswordEncoderUtil;
 import com.kabutar.keyfort.util.TokenGenerator;
 import com.kabutar.keyfort.util.url.Matcher;
@@ -46,7 +47,7 @@ public class AuthService {
     private SessionRepository sessionRepository;
 
     @Autowired
-    private JwtService jwtService;
+    private Jwt jwtService;
 
     @Autowired
     private RoleService roleService;

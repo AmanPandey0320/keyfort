@@ -1,4 +1,4 @@
-package com.kabutar.keyfort.service;
+package com.kabutar.keyfort.util;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Component
-public class JwtService {
+public class Jwt {
 
     @Value("${security.jwt.secret}")
     private String SECRET;
