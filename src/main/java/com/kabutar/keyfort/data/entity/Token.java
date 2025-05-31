@@ -1,4 +1,4 @@
-package com.kabutar.keyfort.Entity;
+package com.kabutar.keyfort.data.entity;
 
 import com.kabutar.keyfort.constant.AuthConstant;
 import jakarta.persistence.*;

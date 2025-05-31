@@ -1,12 +1,12 @@
-package com.kabutar.keyfort.repository;
-
-import com.kabutar.keyfort.Entity.Client;
+package com.kabutar.keyfort.data.repository;
 
 import java.util.ArrayList;
 
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
+
+import com.kabutar.keyfort.data.entity.Client;
 
 @Repository
 public interface ClientRepository extends CrudRepository<Client,String> {

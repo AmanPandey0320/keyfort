@@ -2,9 +2,9 @@ package com.kabutar.keyfort.controller.v1;
 
 import java.util.*;
 
-import com.kabutar.keyfort.Entity.Token;
-import com.kabutar.keyfort.Entity.User;
 import com.kabutar.keyfort.constant.AuthConstant;
+import com.kabutar.keyfort.data.entity.Token;
+import com.kabutar.keyfort.data.entity.User;
 import com.kabutar.keyfort.dto.ClientDto;
 import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;

@@ -1,11 +1,11 @@
-package com.kabutar.keyfort.repository;
-
-import com.kabutar.keyfort.Entity.User;
+package com.kabutar.keyfort.data.repository;
 
 import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
+
+import com.kabutar.keyfort.data.entity.User;
 
 @Repository
 public interface UserRepository extends CrudRepository<User, String> {

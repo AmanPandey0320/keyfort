@@ -1,13 +1,14 @@
-package com.kabutar.keyfort.repository;
+package com.kabutar.keyfort.data.repository;
 
-import com.kabutar.keyfort.Entity.Credential;
-import com.kabutar.keyfort.Entity.User;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import com.kabutar.keyfort.data.entity.Credential;
+import com.kabutar.keyfort.data.entity.User;
 
 import java.util.List;
 

@@ -1,7 +1,8 @@
 package com.kabutar.keyfort.service;
 
-import com.kabutar.keyfort.Entity.User;
 import org.springframework.stereotype.Service;
+
+import com.kabutar.keyfort.data.entity.User;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package com.kabutar.keyfort.Entity;
+package com.kabutar.keyfort.data.entity;
 
 import jakarta.persistence.*;
 
@@ -67,11 +67,11 @@ public class Credential {
         this.createdAt = createdAt;
     }
 
-    public com.kabutar.keyfort.Entity.User getUser() {
+    public com.kabutar.keyfort.data.entity.User getUser() {
         return User;
     }
 
-    public void setUser(com.kabutar.keyfort.Entity.User user) {
+    public void setUser(com.kabutar.keyfort.data.entity.User user) {
         User = user;
     }
 }
