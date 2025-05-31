@@ -61,4 +61,12 @@ public class Dimension {
     public void setActive(boolean active) {
         isActive = active;
     }
+
+	@Override
+	public String toString() {
+		return "Dimension [id=" + id + ", name=" + name + ", displayName=" + displayName + ", clients=" + clients
+				+ ", isActive=" + isActive + "]";
+	}
+    
+    
 }

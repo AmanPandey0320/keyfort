@@ -29,4 +29,8 @@ public class AuthConstant {
     	static public String REFRESH_TOKEN = "KF_REFRESH_TOKEN";
     	static public String SESSION_ID = "KF_SESSION_ID";
     }
+    
+    public static class GrantType{
+    	public static String AUTH_CODE = "authorization_code";
+    }
 }

@@ -12,3 +12,16 @@ security:
          method: "POST"
        - path: "/api/v1/auth/*/token"
          method: "POST"
+
+config:
+  dimension:
+    id: "e7b1d516-a4d3-42a4-addb-07288b3e2535"
+  client:
+    secret: "0a5f4360-ae03-4f8a-8020-189a934a4e05-9873e4ca-403b-4ee6-99b3-2c6e7b7e380d"
+    redirectUri: "http://localhost:8085/*"
+  admin:
+    firstName: "Admin"
+    lastName: "User"
+    userName: "admin"
+    password: "password"
+    
