@@ -92,10 +92,7 @@ public class AuthService {
     public User matchUserCredential(String username, String password, String clientId, String dimension){
         User user = userRepository.findByUsername(username);
 
-        if(
-                user == null || !user.getClient().getClientId().equals(clientId) ||
-                !user.getClient().getDimension().getName().equals(dimension)
-        ){
+        if(user == null){
         	logger.info("User with username: {} login failed for invalid dimension or clienti-id",username);
             return null;
         }
