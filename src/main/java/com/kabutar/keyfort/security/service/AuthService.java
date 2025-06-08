@@ -1,4 +1,4 @@
-package com.kabutar.keyfort.service;
+package com.kabutar.keyfort.security.service;
 
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.data.entity.*;

@@ -1,4 +1,4 @@
-package com.kabutar.keyfort.service;
+package com.kabutar.keyfort.security.service;
 
 import org.springframework.stereotype.Service;
 

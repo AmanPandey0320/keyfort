@@ -2,6 +2,7 @@ package com.kabutar.keyfort.data.loader;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +15,8 @@ import com.kabutar.keyfort.data.entity.User;
 import com.kabutar.keyfort.data.repository.ClientRepository;
 import com.kabutar.keyfort.data.repository.CredentialRepository;
 import com.kabutar.keyfort.data.repository.DimensionRepository;
+import com.kabutar.keyfort.data.repository.SessionRepository;
+import com.kabutar.keyfort.data.repository.TokenRepository;
 import com.kabutar.keyfort.data.repository.UserRepository;
 import com.kabutar.keyfort.util.PasswordEncoderUtil;
 
@@ -45,31 +48,32 @@ public class AdminLoader implements DefaultDataLoader {
 	@Value("${config.admin.password}")
 	private String password;
 	
+	@Autowired
 	private ClientRepository clientRepository;
+	
+	@Autowired
 	private DimensionRepository dimensionRepository;
+	
+	@Autowired
 	private UserRepository userRepository;
+	
+	@Autowired
 	private CredentialRepository credentialRepository;
 	
-	/**
-	 * @author Aman Kr Pandey
-	 * Constructor
-	 */
-	public AdminLoader(
-			ClientRepository clientRepository, 
-			DimensionRepository dimensionRepository, 
-			UserRepository userRepository,
-			CredentialRepository credentialRepository
-			) {
-		this.clientRepository = clientRepository;
-		this.dimensionRepository = dimensionRepository;
-		this.userRepository = userRepository;
-		this.credentialRepository = credentialRepository;
-	}
+	@Autowired
+	private SessionRepository sessionRepository;
+	
+	@Autowired
+	private TokenRepository tokenRepository;
+	
+
 	
 	
 	private void checkData() {
 		//TODO: implement data check, remove delete
 		this.credentialRepository.deleteAll();
+		this.tokenRepository.deleteAll();
+		this.sessionRepository.deleteAll();
 		this.userRepository.deleteAll();
 		this.clientRepository.deleteAll();
 		this.dimensionRepository.deleteAll();

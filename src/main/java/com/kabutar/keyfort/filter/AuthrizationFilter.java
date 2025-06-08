@@ -15,7 +15,7 @@ import org.springframework.web.util.pattern.PathPatternParser;
 
 import com.kabutar.keyfort.config.AuthConfig;
 import com.kabutar.keyfort.constant.AuthConstant;
-import com.kabutar.keyfort.service.AuthService;
+import com.kabutar.keyfort.security.service.AuthService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

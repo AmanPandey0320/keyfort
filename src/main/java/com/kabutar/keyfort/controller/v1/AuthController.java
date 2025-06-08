@@ -8,7 +8,7 @@ import com.kabutar.keyfort.data.entity.User;
 import com.kabutar.keyfort.dto.ClientDto;
 import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;
-import com.kabutar.keyfort.service.AuthService;
+import com.kabutar.keyfort.security.service.AuthService;
 import com.kabutar.keyfort.util.ResponseHandler;
 
 import jakarta.servlet.http.Cookie;
