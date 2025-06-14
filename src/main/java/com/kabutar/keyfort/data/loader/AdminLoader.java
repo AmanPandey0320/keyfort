@@ -30,8 +30,12 @@ public class AdminLoader implements DefaultDataLoader {
 	
 	private static Logger logger = LogManager.getLogger(AdminLoader.class);
 	
-	@Value("${config.dimension.id}")
-	private String dimensionId;
+	@Value("${config.dimension.name}")
+	private String dimensionName;
+	
+	@Value("${config.dimension.displayName}")
+	private String dimensionDisplayName;
+	
 	
 	@Value("${config.client.secret}")
 	private String clientSecret;
@@ -79,8 +83,8 @@ public class AdminLoader implements DefaultDataLoader {
 			dimension = new Dimension();
 			
 			//config dimension
-			dimension.setName(DataConstant.DEFAULT_DIMENSION_NAME);
-			dimension.setDisplayName(DataConstant.DEFAULT_DIMENSION_DISPLAY_NAME);
+			dimension.setName(dimensionName);
+			dimension.setDisplayName(dimensionDisplayName);
 			dimension.setActive(true);
 			
 			dimensionRepository.save(dimension);
