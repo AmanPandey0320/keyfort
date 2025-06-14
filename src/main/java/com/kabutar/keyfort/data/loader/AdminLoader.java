@@ -1,10 +1,13 @@
 package com.kabutar.keyfort.data.loader;
 
+import java.util.List;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.constant.DataConstant;
@@ -69,28 +72,11 @@ public class AdminLoader implements DefaultDataLoader {
 
 	
 	
-	private void checkData() {
-		//TODO: implement data check, remove delete
-		this.credentialRepository.deleteAll();
-		this.tokenRepository.deleteAll();
-		this.sessionRepository.deleteAll();
-		this.userRepository.deleteAll();
-		this.clientRepository.deleteAll();
-		this.dimensionRepository.deleteAll();
-	}
-	
-	@Override
-	@PostConstruct
-	public void loadData() {
-		Dimension dimension = new Dimension();
-		Client client = new Client();
-		User user = new User();
-		Credential credential = new Credential();
+	private Dimension checkAndCreateDimension() {
+		Dimension dimension = dimensionRepository.findByName(DataConstant.DEFAULT_DIMENSION_NAME);
 		
-		try {
-			
-			//check existing data
-			this.checkData();
+		if(dimension == null) {
+			dimension = new Dimension();
 			
 			//config dimension
 			dimension.setName(DataConstant.DEFAULT_DIMENSION_NAME);
@@ -98,21 +84,55 @@ public class AdminLoader implements DefaultDataLoader {
 			dimension.setActive(true);
 			
 			dimensionRepository.save(dimension);
-			
-			logger.info("Created dimension with id: {}",dimension.getId());
-			
-			//config client
+		}
+		
+		return dimension;
+	}
+	
+	@Transactional
+	private Client checkAndCreateClient(Dimension dimension) {
+		List<Client> clients = clientRepository.findClientByDimension(dimension);
+		Client client = null;
+		
+		logger.debug("clients for dimension {} are {} in numbers",dimension.getName(),clients.size());
+		
+		for(Client c: clients) {
+			if(c.getName().equals(DataConstant.DEFAULT_CLIENT_NAME)) {
+				client = c;
+				break;
+			}
+		}
+		
+		if(client != null) {
+			client.setClientSecret(clientSecret);
+			client.setRedirectUri(redirectUri);
+		}else {
+			client = new Client();
 			client.setClientSecret(clientSecret);
 			client.setRedirectUri(redirectUri);
 			client.setDimension(dimension);
 			client.setName(DataConstant.DEFAULT_CLIENT_NAME);
 			client.setGrantType(AuthConstant.GrantType.AUTH_CODE);
-			
-			clientRepository.save(client);
-			
-			logger.info("Created client {} with id: {}",client.getName(),client.getClientId());
-			
-			//admin user config
+		}
+		
+		clientRepository.save(client);
+		
+		return client;
+	}
+	
+	private void checkAndCreateUser(Client client) {
+		User user = null;
+		List<User> users = userRepository.findByClient(client);
+		
+		for(User u: users) {
+			if(u.getUsername().equals(userName)) {
+				user  = u;
+				break;
+			}
+		}
+		
+		if(user == null) {
+			user = new User();
 			user.setUsername(userName);
 			user.setFirstName(firstName);
 			user.setLastName(lastName);
@@ -123,13 +143,43 @@ public class AdminLoader implements DefaultDataLoader {
 			
 			logger.info("Created user with id: {}",user.getId());
 			
-			//set credentials
-			credential.setActive(true);
-			credential.setDeleted(false);
-			credential.setHash(PasswordEncoderUtil.encodePassword(password));
-			credential.setUser(user);
+		}else {
+			//incativate all previous passwords
+			credentialRepository.setAllUserCredentialsInactive(user.getId());
+		}
+		
+		
+		
+		Credential credential = new Credential();
+		
+		//set credentials
+		credential.setActive(true);
+		credential.setDeleted(false);
+		credential.setHash(PasswordEncoderUtil.encodePassword(password));
+		credential.setUser(user);
+		
+		credentialRepository.save(credential);
+
+	}
+	
+	@Override
+	@PostConstruct
+	public void loadData() {
+		try {
+			Dimension dimension = this.checkAndCreateDimension();
 			
-			credentialRepository.save(credential);
+			//check existing data
+			dimension = dimensionRepository.findByName(DataConstant.DEFAULT_DIMENSION_NAME);
+			
+			logger.info("Created dimension with id: {}",dimension.getId());
+			
+			//config client
+			Client client = this.checkAndCreateClient(dimension);
+			
+			logger.info("Created client {} with id: {}",client.getName(),client.getClientId());
+			
+			//admin user config
+			this.checkAndCreateUser(client);
 			
 		}catch(Exception e) {
 			logger.error("Error creating default values, reason: {}",e.getLocalizedMessage());
