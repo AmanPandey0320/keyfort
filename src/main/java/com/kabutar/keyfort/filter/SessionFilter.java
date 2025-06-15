@@ -18,13 +18,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Component
-public class SessionFIlter extends OncePerRequestFilter {
+public class SessionFilter extends OncePerRequestFilter {
 	
 	private SessionRepository sessionRepository;
 	
 	
 
-	public SessionFIlter(SessionRepository sessionRepository) {
+	public SessionFilter(SessionRepository sessionRepository) {
 		super();
 		this.sessionRepository = sessionRepository;
 	}
