@@ -166,10 +166,16 @@ public class AdminLoader implements DefaultDataLoader {
 
 	}
 	
+	private void clearData() {
+		sessionRepository.deleteAll();
+		tokenRepository.deleteAll();
+	}
+	
 	@Override
 	@PostConstruct
 	public void loadData() {
 		try {
+			this.clearData();
 			Dimension dimension = this.checkAndCreateDimension();
 			
 			//check existing data
