@@ -16,6 +16,7 @@ public class AuthConstant {
         static public Integer ACCESS_TOKEN = 1800;
         static public Integer REFRESH_TOKEN = 21600;
         static public Integer AUTHZ_CODE = 300;
+        static public Integer SESSION = 21600;
 
     }
 
