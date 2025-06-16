@@ -110,7 +110,7 @@ public class AuthService {
         Credential credential = credentialList.get(0);
 
         if(PasswordEncoderUtil.matches(password,credential.getHash())){
-        	logger.info("User with username: {} login success for invalid credentials",username);
+        	logger.info("User with username: {} login success for valid credentials",username);
             return user;
         }
 
