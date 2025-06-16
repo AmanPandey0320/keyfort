@@ -40,7 +40,8 @@ public class AuthController {
 	@PostMapping("/login_action")
 	public ResponseEntity<?> loginAction(
 			@RequestBody UserDto userDto,
-			@PathVariable("dimension") String dimension
+			@PathVariable("dimension") String dimension,
+			@CookieValue(value="KF_SESSION_ID") String sessionId
 	){
 		logger.info("Entering login_action controller");
 		try {
