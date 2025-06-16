@@ -54,11 +54,22 @@ public class AuthService {
     
     @Autowired
     private Matcher matcher;
+    
+    public Client matchRedirectUri(String clientId, String redirectUri) throws Exception {
+    	Client client = clientRepository.findByClientId(clientId);
+    	
+    	//if redirect uri matches
+    	if(matcher.match(redirectUri, clientId)) {
+    		return client;
+    	}
+    	throw new Exception("Invalid client");
+    }
 
     /**
      *
      *
      * @return
+     * @throws Exception 
      */
     public boolean isClientValid(
             String clientId,
@@ -66,13 +77,12 @@ public class AuthService {
             String redirectUri,
             String grantType,
             String dimensionName
-    ){
-        Client client = clientRepository.findByClientId(clientId);
+    ) throws Exception{
+        Client client = this.matchRedirectUri(clientId, redirectUri);
         Dimension dimension = dimensionRepository.findByName(dimensionName);
 
         if(
                 client.getClientSecret().equals(clientSecret) &&
-                matcher.match(redirectUri, clientId) &&
                 client.getGrantType().equals(grantType) &&
                 dimension.getName().equals(dimensionName)
         ){
@@ -89,7 +99,7 @@ public class AuthService {
      * @param clientId
      * @return
      */
-    public User matchUserCredential(String username, String password, String clientId, String dimension){
+    public User matchUserCredential(String username, String password){
         User user = userRepository.findByUsername(username);
 
         if(user == null){

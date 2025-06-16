@@ -44,9 +44,9 @@ public class AuthController {
 	){
 		logger.info("Entering login_action controller");
 		try {
-			User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword(), userDto.getClientId()       , dimension);
+			User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword());
 			
-			if(user != null){
+			if((user != null) && (authService.matchRedirectUri(userDto.getClientId(), userDto.getRedirectUri()) != null)){
 				Token token = authService.getAuthTokenForUser(user);
 				return new ResponseHandler()
 						.status(HttpStatus.OK)
@@ -59,7 +59,7 @@ public class AuthController {
 					.build();
 		}catch(Exception e) {
 			return new ResponseHandler()
-					.error(List.of(e.getMessage()))
+					.error(List.of(e.getLocalizedMessage()))
 					.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.build();
 		}
@@ -124,17 +124,25 @@ public class AuthController {
 			@PathVariable("dimension") String dimension
 	){
 
-		if(authService.isClientValid(
-				client.getClientId(),
-				client.getClientSecret(),
-				client.getRedirectUri(),
-				client.getGrantType(),
-				dimension
-				)){
-			//success
-			logger.info("Client with id: {}, requested authorization",client.getClientId());
+		try {
+			if(authService.isClientValid(
+					client.getClientId(),
+					client.getClientSecret(),
+					client.getRedirectUri(),
+					client.getGrantType(),
+					dimension
+					)){
+				//success
+				logger.info("Client with id: {}, requested authorization",client.getClientId());
+				return new ResponseHandler()
+						.status(HttpStatus.OK)
+						.build();
+			}
+		} catch (Exception e) {
+			logger.error("Error occured because of {}",e.getMessage());
 			return new ResponseHandler()
-					.status(HttpStatus.OK)
+					.status(HttpStatus.BAD_REQUEST)
+					.error(List.of(e.getLocalizedMessage()))
 					.build();
 		}
 
