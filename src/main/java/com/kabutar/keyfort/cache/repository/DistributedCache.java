@@ -1,28 +1,24 @@
-package com.kabutar.keyfort.cache.services;
+package com.kabutar.keyfort.cache.repository;
 
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
-import com.kabutar.keyfort.cache.intefaces.InMemoryCache;
+import com.kabutar.keyfort.cache.intefaces.CacheRepository;
 
 @Component
-public class DistributedCache implements InMemoryCache {
+@ConditionalOnProperty(name = "cache.type", havingValue = "REDIS")
+public class DistributedCache implements CacheRepository {
 
 	@Override
-	public void init() {
+	public void storeObject(String store, Object object, Object key) {
 		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
-	public void storeObject(Object object, Object key) {
+	public Object retriveObject(String store, Object key) {
 		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void retriveObject(Object key) {
-		// TODO Auto-generated method stub
-
+		return null;
 	}
 
 }

@@ -25,4 +25,10 @@ config:
     lastName: "User"
     userName: "admin"
     password: "password"
+
+cache:
+  type: "INF-EMB"
+  memory: 1000
+  lifespan: 300 # in seconds
+  deleteOnRetrieve: false
     

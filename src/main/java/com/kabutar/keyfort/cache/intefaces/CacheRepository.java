@@ -1,7 +1,6 @@
 package com.kabutar.keyfort.cache.intefaces;
 
-public interface InMemoryCache {
-	void init();
-	void storeObject (Object object, Object key);
-	void retriveObject(Object key);
+public interface CacheRepository {
+	void storeObject (String store, Object key, Object value);
+	Object retriveObject(String store, Object key);
 }
