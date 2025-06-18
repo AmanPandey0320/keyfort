@@ -55,6 +55,13 @@ public class AuthService {
     @Autowired
     private Matcher matcher;
     
+    /**
+     * 
+     * @param clientId
+     * @param redirectUri
+     * @return
+     * @throws Exception
+     */
     public Client matchRedirectUri(String clientId, String redirectUri) throws Exception {
     	Client client = clientRepository.findByClientId(clientId);
     	
@@ -149,19 +156,6 @@ public class AuthService {
         logger.debug("User with username: {} has an authcode",user.getUsername());
 
         return token;
-    }
-
-    /**
-     *
-     * @param user
-     * @param clientId
-     * @return
-     */
-    public User createUser (User user,String clientId){
-        Client client = clientRepository.findByClientId(clientId);
-        user.setClient(client);
-        user = userRepository.save(user);
-        return user;
     }
 
     /**
@@ -332,20 +326,20 @@ public class AuthService {
     }
     
     
-    public String getReirectUriWithAuthCode(String uri,String authCode) {
-    	StringBuilder sb = new StringBuilder();
-    	sb.append(uri);
-    	
-    	if(uri.contains("?")) {
-    		//already has an query
-    		sb.append("&auth_code=");
-    	}else {
-    		sb.append("?auth_code=");
-    	}
-    	
-    	sb.append(authCode);
-    	
-    	return sb.toString();
-    }
+//    public String getReirectUriWithAuthCode(String uri,String authCode) {
+//    	StringBuilder sb = new StringBuilder();
+//    	sb.append(uri);
+//    	
+//    	if(uri.contains("?")) {
+//    		//already has an query
+//    		sb.append("&auth_code=");
+//    	}else {
+//    		sb.append("?auth_code=");
+//    	}
+//    	
+//    	sb.append(authCode);
+//    	
+//    	return sb.toString();
+//    }
 
 }

@@ -8,6 +8,7 @@ import com.kabutar.keyfort.data.entity.User;
 import com.kabutar.keyfort.dto.ClientDto;
 import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;
+import com.kabutar.keyfort.security.interfaces.SecureAuthFlow;
 import com.kabutar.keyfort.security.service.AuthService;
 import com.kabutar.keyfort.util.ResponseHandler;
 
@@ -27,6 +28,9 @@ public class AuthController {
 
 	@Autowired
 	private AuthService authService;
+	
+	@Autowired
+	private SecureAuthFlow authFlow;
 	
 	private final Logger logger  = LogManager.getLogger(AuthController.class);
 
@@ -49,6 +53,7 @@ public class AuthController {
 			
 			if((user != null) && (authService.matchRedirectUri(userDto.getClientId(), userDto.getRedirectUri()) != null)){
 				Token token = authService.getAuthTokenForUser(user);
+				this.authFlow.init(sessionId, userDto.getCodeChallange());
 				return new ResponseHandler()
 						.status(HttpStatus.OK)
 						.data(List.of( Map.of("authorizationCode",token.getToken())))
