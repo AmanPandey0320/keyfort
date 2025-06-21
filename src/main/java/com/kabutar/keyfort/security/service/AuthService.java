@@ -215,7 +215,7 @@ public class AuthService {
      * @param grantType
      * @return
      */
-    public Map<String,Object> exchangeForTokens(String token,String clientSecret, String dimension){
+    public Map<String,Object> exchangeForTokens(String token,String clientSecret, String dimension, String sessionId){
         Token savedToken = tokenRepository.findByToken(token);
         boolean isValid = true;
         List<String> errors = new ArrayList<>();
@@ -247,30 +247,29 @@ public class AuthService {
         if(!isValid) {
         	return Map.of("isValid",isValid, "errors",errors);
         }
+        
+        if(sessionId == null) {
+        	logger.warn("Authentication code {} does not have valid session",token);
+        	errors.add("Session timeout");
+        	isValid = false;
+        }
 
         User user = savedToken.getUser();
         List<String> roles = roleService.getRolesForUser(savedToken.getUser());
-        Session session = new Session();
         String accessToken = null;
         String refreshToken = null;
-        
-        session.setAuthenticated(true);
-        session.setUser(user);
-        session.setCreatedAt(new Date(System.currentTimeMillis()));
-        session.setLastUsed(new Date(System.currentTimeMillis()));
         
         //mark current auth token as invalid
         savedToken.setValid(false);
         
         //save to repository
         tokenRepository.save(savedToken);
-        sessionRepository.save(session);
         
         
         accessToken = jwtService.generateToken(
                 Map.of(
                         AuthConstant.ClaimType.ROLE,roles,
-                        AuthConstant.ClaimType.SESSION,session.getId()
+                        AuthConstant.ClaimType.SESSION,sessionId
                 ),
                 user.getUsername(),
                 AuthConstant.ExpiryTime.ACCESS_TOKEN
@@ -279,7 +278,7 @@ public class AuthService {
         refreshToken = jwtService.generateToken(
                 Map.of(
                         AuthConstant.ClaimType.ROLE,roles,
-                        AuthConstant.ClaimType.SESSION,session.getId()
+                        AuthConstant.ClaimType.SESSION,sessionId
                 ),
                 user.getUsername(),
                 AuthConstant.ExpiryTime.REFRESH_TOKEN

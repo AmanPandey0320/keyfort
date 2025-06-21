@@ -79,15 +79,23 @@ public class AuthController {
 	@PostMapping("/token")
 	public ResponseEntity<?> token(
 			@RequestBody TokenDto tokenDto,
-			@PathVariable("dimension") String dimension
+			@PathVariable("dimension") String dimension,
+			@CookieValue(value="KF_SESSION_ID", required = false) String sessionId
 	){
 		try{
-			Map<String,Object> tokens = authService.exchangeForTokens(tokenDto.getToken(),tokenDto.getClientSecret(), dimension);
+			Map<String,Object> tokens = authService.exchangeForTokens(tokenDto.getToken(),tokenDto.getClientSecret(), dimension,sessionId);
 
 			if(!((boolean) tokens.get("isValid"))){
 				return new ResponseHandler()
 						.error((List<String>)tokens.getOrDefault("errors",List.of("Unexpected error")))
 						.status(HttpStatus.UNAUTHORIZED)
+						.build();
+			}
+			
+			if(!this.authFlow.verify(sessionId, tokenDto.getCodeVerifier())) {
+				return new ResponseHandler()
+						.error(List.of("Invalid requester"))
+						.status(HttpStatus.BAD_REQUEST)
 						.build();
 			}
 			
