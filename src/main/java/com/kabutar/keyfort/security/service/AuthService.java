@@ -2,6 +2,7 @@ package com.kabutar.keyfort.security.service;
 
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.data.entity.*;
+import com.kabutar.keyfort.data.entity.client.Client;
 import com.kabutar.keyfort.data.repository.*;
 import com.kabutar.keyfort.util.Jwt;
 import com.kabutar.keyfort.util.PasswordEncoderUtil;

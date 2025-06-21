@@ -1,8 +1,11 @@
-package com.kabutar.keyfort.data.entity;
+package com.kabutar.keyfort.data.entity.client;
 
 import jakarta.persistence.*;
 
 import java.util.List;
+
+import com.kabutar.keyfort.data.entity.Dimension;
+import com.kabutar.keyfort.data.entity.User;
 
 @Entity
 public class Client {

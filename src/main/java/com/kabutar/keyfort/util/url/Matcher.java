@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 
-import com.kabutar.keyfort.data.entity.Client;
+import com.kabutar.keyfort.data.entity.client.Client;
 import com.kabutar.keyfort.data.repository.ClientRepository;
 
 import jakarta.annotation.PostConstruct;

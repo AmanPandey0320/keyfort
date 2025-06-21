@@ -6,8 +6,8 @@ import java.util.Optional;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import com.kabutar.keyfort.data.entity.Client;
 import com.kabutar.keyfort.data.entity.User;
+import com.kabutar.keyfort.data.entity.client.Client;
 
 @Repository
 public interface UserRepository extends CrudRepository<User, String> {
