@@ -1,36 +1,49 @@
 package com.kabutar.keyfort.filter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpCookie;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.PathContainer;
+import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kabutar.keyfort.config.AuthConfig;
 import com.kabutar.keyfort.constant.AuthConstant;
+import com.kabutar.keyfort.controller.v1.AuthController;
 import com.kabutar.keyfort.security.service.AuthService;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import reactor.core.publisher.Mono;
+
 
 @Component
-public class AuthrizationFilter extends OncePerRequestFilter {
+public class AuthrizationFilter implements WebFilter  {
+	
+	private final Logger logger  = LogManager.getLogger(AuthrizationFilter.class);
 	
 	private AuthConfig authConfig;
 	private AuthService authService;
 	private PathPatternParser parser;
 	private final List<PathPattern> patterns;
 	private final int patternSize;
+	private final ObjectMapper objectMapper;
 	
 	
 	
@@ -41,36 +54,56 @@ public class AuthrizationFilter extends OncePerRequestFilter {
 		this.parser = new PathPatternParser();
 		this.patterns = this.authConfig.getPreAuthnUrls().stream().map((AuthConfig.PreAuthnUrl url) -> parser.parse(url.getPath())).toList();
 		this.patternSize = this.patterns.size();
+		this.objectMapper = new ObjectMapper();
 	}
 
-	
-	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) 
-			throws ServletException, IOException {
-		Map<String,Cookie> cookies = List.of(((request.getCookies() == null)? new Cookie[0]:request.getCookies())).stream().collect(Collectors.toMap(Cookie::getName, c -> c));
-		String forwardHost = request.getHeader("X-Forwarded-Host");
-		String forwardProtocol = request.getHeader("X-Forwarded-Proto");
-		
-		if(!(cookies.containsKey(AuthConstant.CookieType.ACCESS_TOKEN) && cookies.containsKey(AuthConstant.CookieType.REFRESH_TOKEN))) {
-			response.setStatus(403);
-			return;
-		}
-		
-		Cookie accessTokenCookie = cookies.get(AuthConstant.CookieType.ACCESS_TOKEN);
-		Cookie refreshTokenCookie = cookies.get(AuthConstant.CookieType.REFRESH_TOKEN);
-		
-		if(!authService.validateAccessToken(accessTokenCookie.getValue())) {
-			response.sendRedirect(forwardProtocol+"://"+forwardHost+"/console/auth/signin");
-			return;
-		}
-		
-		filterChain.doFilter(request, response);
-	}
+
 
 	@Override
-	protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-		String path = request.getRequestURI();
-		String method = request.getMethod();
+	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+		
+		ServerHttpResponse response = exchange.getResponse();
+		
+		if(this.shouldNotFilter(exchange.getRequest())) {
+			return chain.filter(exchange);
+		}
+		
+		
+		try {
+			HttpCookie accessTokenCookie = exchange
+					.getRequest()
+					.getCookies()
+					.getOrDefault(AuthConstant.CookieType.ACCESS_TOKEN, List.of())
+					.stream()
+					.findFirst()
+					.orElse(null);
+			
+			if((accessTokenCookie == null) || (authService.validateAccessToken(accessTokenCookie.getValue()))) {
+				String responseBody = this.objectMapper.writeValueAsString(Map.of("error", List.of("Unauthorized")));
+				response.setStatusCode(HttpStatus.UNAUTHORIZED);
+				response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+				
+				logger.error("Error at authorization filter: unauthorized access");
+				
+				return response.writeWith(Mono.just(response.bufferFactory().wrap(responseBody.getBytes(StandardCharsets.UTF_8))));
+				
+			}
+		}catch(Exception e) {
+			logger.error("Error in authorization filter: {}",e.getMessage());
+			e.printStackTrace();
+			response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
+			
+			return response.writeWith(Mono.empty());
+			
+		}
+		return chain.filter(exchange);
+	}
+
+	private boolean shouldNotFilter( ServerHttpRequest request ) {
+		String path = request.getPath().toString();
+		String method = request.getMethod().name();
+		
+		logger.info("request path: {}, request method: {}",path,method);
 		
 		for(int i=0;i<this.patternSize;i++) {
 			if(this.patterns.get(i).matches(PathContainer.parsePath(path))
@@ -81,7 +114,7 @@ public class AuthrizationFilter extends OncePerRequestFilter {
 		}
 		return false;
 	}
-	
+//	
 	
 
 }
