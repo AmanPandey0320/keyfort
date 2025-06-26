@@ -3,10 +3,10 @@ package com.kabutar.keyfort.util;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.ResponseCookie;
 
 import reactor.core.publisher.Mono;
 
-//import jakarta.servlet.http.Cookie;
 
 import java.util.Collections;
 import java.util.List;
@@ -48,10 +48,10 @@ public class ResponseHandler {
         return this;
     }
     
-//    public ResponseHandler cookie(Cookie cookie) {
-//    	this.httpHeaders.add(HttpHeaders.SET_COOKIE,this.cookieToString(cookie));
-//    	return this;
-//    }
+    public ResponseHandler cookie(ResponseCookie cookie) {
+    	this.httpHeaders.add(HttpHeaders.SET_COOKIE,this.cookieToString(cookie));
+    	return this;
+    }
     
     public ResponseHandler redirect(String uri) {
     	this.httpHeaders.add("Location", uri);
@@ -71,30 +71,30 @@ public class ResponseHandler {
         		);
     }
     
-//    private String cookieToString(Cookie cookie) {
-//StringBuilder builder = new StringBuilder();
-//		
-//		//add cookie value
-//		builder.append(cookie.getName()+"="+cookie.getValue());
-//		
-//		//add Max-Age
-//		builder.append("; Max-Age="+Integer.toString(cookie.getMaxAge()));
-//		
-//		//add Path
-//		builder.append("; Path=/;");
-//		
-//		//add secure
-//		if(cookie.getSecure()) {
-//			builder.append("; Secure");
-//		}
-//		
-//		//add Http-only
-//		if(cookie.isHttpOnly()) {
-//			builder.append("; HttpOnly");
-//		}
-//		
-//		builder.append("; SameSite=strict");
-//		
-//		return builder.toString();
-//    }
+    private String cookieToString(ResponseCookie cookie) {
+StringBuilder builder = new StringBuilder();
+		
+		//add cookie value
+		builder.append(cookie.getName()+"="+cookie.getValue());
+		
+		//add Max-Age
+		builder.append("; Max-Age="+Long.toString(cookie.getMaxAge().getSeconds()));
+		
+		//add Path
+		builder.append("; Path=/;");
+		
+		//add secure
+		if(cookie.isSecure()) {
+			builder.append("; Secure");
+		}
+		
+		//add Http-only
+		if(cookie.isHttpOnly()) {
+			builder.append("; HttpOnly");
+		}
+		
+		builder.append("; SameSite=strict");
+		
+		return builder.toString();
+    }
 }
