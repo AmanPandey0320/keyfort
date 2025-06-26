@@ -1,15 +1,11 @@
 package com.kabutar.keyfort.filter;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -17,7 +13,6 @@ import org.springframework.http.server.PathContainer;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -27,7 +22,6 @@ import org.springframework.web.util.pattern.PathPatternParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kabutar.keyfort.config.AuthConfig;
 import com.kabutar.keyfort.constant.AuthConstant;
-import com.kabutar.keyfort.controller.v1.AuthController;
 import com.kabutar.keyfort.security.service.AuthService;
 
 import reactor.core.publisher.Mono;
