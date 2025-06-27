@@ -8,17 +8,18 @@ import com.kabutar.keyfort.data.entity.User;
 import com.kabutar.keyfort.dto.ClientDto;
 import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;
+import com.kabutar.keyfort.http.ResponseHandler;
 import com.kabutar.keyfort.security.interfaces.SecureAuthFlow;
 import com.kabutar.keyfort.security.service.AuthService;
-import com.kabutar.keyfort.util.ResponseHandler;
 
-import jakarta.servlet.http.Cookie;
+import reactor.core.publisher.Mono;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.server.ServerWebExchange;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -42,12 +43,22 @@ public class AuthController {
 	 */
 
 	@PostMapping("/login_action")
-	public ResponseEntity<?> loginAction(
+	public Mono<ResponseEntity<?>> loginAction(
 			@RequestBody UserDto userDto,
 			@PathVariable("dimension") String dimension,
-			@CookieValue(value="KF_SESSION_ID") String sessionId
+			ServerWebExchange exchange
 	){
 		logger.info("Entering login_action controller");
+		
+		String sessionId = exchange.getAttributeOrDefault(AuthConstant.CookieType.SESSION_ID, null);
+		
+		if(sessionId == null) {
+			return new ResponseHandler()
+					.error(List.of("No valid session found"))
+					.status(HttpStatus.UNAUTHORIZED)
+					.build();
+		}
+		
 		try {
 			User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword());
 			
@@ -69,6 +80,7 @@ public class AuthController {
 					.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.build();
 		}
+		
 	}
 
 	/**
@@ -77,12 +89,13 @@ public class AuthController {
 	 * @return
 	 */
 	@PostMapping("/token")
-	public ResponseEntity<?> token(
+	public Mono<ResponseEntity<?>> token(
 			@RequestBody TokenDto tokenDto,
 			@PathVariable("dimension") String dimension,
-			@CookieValue(value="KF_SESSION_ID", required = false) String sessionId
+			ServerWebExchange exchange
 	){
 		try{
+			String sessionId = exchange.getAttributeOrDefault(AuthConstant.CookieType.SESSION_ID, null);
 			Map<String,Object> tokens = authService.exchangeForTokens(tokenDto.getToken(),tokenDto.getClientSecret(), dimension,sessionId);
 
 			if(!((boolean) tokens.get("isValid"))){
@@ -99,16 +112,17 @@ public class AuthController {
 						.build();
 			}
 			
-			Cookie accessTokenCookie = new Cookie(AuthConstant.CookieType.ACCESS_TOKEN,(String) tokens.get("access"));
-			Cookie refreshTokenCookie = new Cookie(AuthConstant.CookieType.REFRESH_TOKEN,(String) tokens.get("refresh"));
+			ResponseCookie accessTokenCookie = ResponseCookie.from(AuthConstant.CookieType.ACCESS_TOKEN,(String)tokens.get("access"))
+					.httpOnly(true)
+					.path("/")
+					.maxAge(AuthConstant.ExpiryTime.ACCESS_TOKEN)
+	                .build();
 			
-			accessTokenCookie.setHttpOnly(true);
-			accessTokenCookie.setMaxAge(AuthConstant.ExpiryTime.ACCESS_TOKEN);
-			accessTokenCookie.setSecure(true);
-			
-			refreshTokenCookie.setHttpOnly(true);
-			refreshTokenCookie.setMaxAge(AuthConstant.ExpiryTime.REFRESH_TOKEN);
-			refreshTokenCookie.setSecure(true);
+			ResponseCookie refreshTokenCookie = ResponseCookie.from(AuthConstant.CookieType.ACCESS_TOKEN,(String)tokens.get("refresh"))
+					.httpOnly(true)
+					.path("/")
+					.maxAge(AuthConstant.ExpiryTime.REFRESH_TOKEN)
+	                .build();
 
 			return new ResponseHandler()
 					.cookie(accessTokenCookie)
@@ -120,8 +134,6 @@ public class AuthController {
 					.status(HttpStatus.OK)
 					.build();
 
-
-
 		} catch (Exception e) {
 			e.printStackTrace();
 			return new ResponseHandler()
@@ -132,7 +144,7 @@ public class AuthController {
     }
 	
 	@PostMapping("/authz_client")
-	public ResponseEntity<?> authorizeClient(
+	public Mono<ResponseEntity<?>> authorizeClient(
 			@RequestBody ClientDto client,
 			@CookieValue(value="KF_SESSION_ID", required=false) String sessionId,
 			@PathVariable("dimension") String dimension

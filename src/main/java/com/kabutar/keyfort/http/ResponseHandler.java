@@ -1,4 +1,4 @@
-package com.kabutar.keyfort.util;
+package com.kabutar.keyfort.http;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
