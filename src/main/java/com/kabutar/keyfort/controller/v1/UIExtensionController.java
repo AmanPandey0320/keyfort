@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kabutar.keyfort.http.ResponseHandler;
+import com.kabutar.keyfort.http.ResponseFactory;
 
 import reactor.core.publisher.Mono;
 
@@ -19,7 +19,7 @@ public class UIExtensionController {
 	
 	@GetMapping("/home")
 	public Mono<ResponseEntity<?>> getConsoleData(@PathVariable("dimension") String dimension){
-		return new ResponseHandler()
+		return new ResponseFactory()
 		.data(List.of("data",dimension))
 		.status(HttpStatus.OK)
 		.build();

@@ -8,7 +8,7 @@ import com.kabutar.keyfort.data.entity.User;
 import com.kabutar.keyfort.dto.ClientDto;
 import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;
-import com.kabutar.keyfort.http.ResponseHandler;
+import com.kabutar.keyfort.http.ResponseFactory;
 import com.kabutar.keyfort.security.interfaces.SecureAuthFlow;
 import com.kabutar.keyfort.security.service.AuthService;
 
@@ -53,7 +53,7 @@ public class AuthController {
 		String sessionId = exchange.getAttributeOrDefault(AuthConstant.CookieType.SESSION_ID, null);
 		
 		if(sessionId == null) {
-			return new ResponseHandler()
+			return new ResponseFactory()
 					.error(List.of("No valid session found"))
 					.status(HttpStatus.UNAUTHORIZED)
 					.build();
@@ -65,17 +65,17 @@ public class AuthController {
 			if((user != null) && (authService.matchRedirectUri(userDto.getClientId(), userDto.getRedirectUri()) != null)){
 				Token token = authService.getAuthTokenForUser(user);
 				this.authFlow.init(sessionId, userDto.getCodeChallange());
-				return new ResponseHandler()
+				return new ResponseFactory()
 						.status(HttpStatus.OK)
 						.data(List.of( Map.of("authorizationCode",token.getToken())))
 						.build();
 			}
-			return new ResponseHandler()
+			return new ResponseFactory()
 					.error(List.of("Invalid credentials!"))
 					.status(HttpStatus.UNAUTHORIZED)
 					.build();
 		}catch(Exception e) {
-			return new ResponseHandler()
+			return new ResponseFactory()
 					.error(List.of(e.getLocalizedMessage()))
 					.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.build();
@@ -99,14 +99,14 @@ public class AuthController {
 			Map<String,Object> tokens = authService.exchangeForTokens(tokenDto.getToken(),tokenDto.getClientSecret(), dimension,sessionId);
 
 			if(!((boolean) tokens.get("isValid"))){
-				return new ResponseHandler()
+				return new ResponseFactory()
 						.error((List<String>)tokens.getOrDefault("errors",List.of("Unexpected error")))
 						.status(HttpStatus.UNAUTHORIZED)
 						.build();
 			}
 			
 			if(!this.authFlow.verify(sessionId, tokenDto.getCodeVerifier())) {
-				return new ResponseHandler()
+				return new ResponseFactory()
 						.error(List.of("Invalid requester"))
 						.status(HttpStatus.BAD_REQUEST)
 						.build();
@@ -124,7 +124,7 @@ public class AuthController {
 					.maxAge(AuthConstant.ExpiryTime.REFRESH_TOKEN)
 	                .build();
 
-			return new ResponseHandler()
+			return new ResponseFactory()
 					.cookie(accessTokenCookie)
 					.cookie(refreshTokenCookie)
 					.data(List.of(Map.of(
@@ -136,7 +136,7 @@ public class AuthController {
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new ResponseHandler()
+			return new ResponseFactory()
 					.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.error(List.of(e.getLocalizedMessage()))
 					.build();
@@ -160,13 +160,13 @@ public class AuthController {
 					)){
 				//success
 				logger.info("Client with id: {}, requested authorization",client.getClientId());
-				return new ResponseHandler()
+				return new ResponseFactory()
 						.status(HttpStatus.OK)
 						.build();
 			}
 		} catch (Exception e) {
 			logger.error("Error occured because of {}",e.getMessage());
-			return new ResponseHandler()
+			return new ResponseFactory()
 					.status(HttpStatus.BAD_REQUEST)
 					.error(List.of(e.getLocalizedMessage()))
 					.build();
@@ -174,7 +174,7 @@ public class AuthController {
 
 		// all cases failure
 
-		return new ResponseHandler()
+		return new ResponseFactory()
 				.status(HttpStatus.BAD_REQUEST)
 				.error(List.of("Invalid requester details"))
 				.build();

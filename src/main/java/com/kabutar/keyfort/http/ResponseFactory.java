@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class ResponseHandler {
+public class ResponseFactory {
 
     private HttpStatus status;
     private List<String> error;
@@ -20,7 +20,7 @@ public class ResponseHandler {
     private List<Object> data;
     private HttpHeaders httpHeaders;
     
-    public ResponseHandler() {
+    public ResponseFactory() {
     	this.error = Collections.emptyList();
     	this.message = Collections.emptyList();
     	this.data = Collections.emptyList();
@@ -28,32 +28,32 @@ public class ResponseHandler {
     	this.httpHeaders = new HttpHeaders();
     }
 
-    public ResponseHandler status(HttpStatus status) {
+    public ResponseFactory status(HttpStatus status) {
         this.status = status;
         return this;
     }
 
-    public ResponseHandler error(List<String> error) {
+    public ResponseFactory error(List<String> error) {
         this.error = error;
         return this;
     }
 
-    public ResponseHandler message(List<String> message) {
+    public ResponseFactory message(List<String> message) {
         this.message = message;
         return this;
     }
 
-    public ResponseHandler data(List<Object> data) {
+    public ResponseFactory data(List<Object> data) {
         this.data = data;
         return this;
     }
     
-    public ResponseHandler cookie(ResponseCookie cookie) {
+    public ResponseFactory cookie(ResponseCookie cookie) {
     	this.httpHeaders.add(HttpHeaders.SET_COOKIE,this.cookieToString(cookie));
     	return this;
     }
     
-    public ResponseHandler redirect(String uri) {
+    public ResponseFactory redirect(String uri) {
     	this.httpHeaders.add("Location", uri);
     	
     	return this;
