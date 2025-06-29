@@ -62,7 +62,7 @@ public class AuthController {
 		try {
 			User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword());
 			
-			if((user != null) && (authService.matchRedirectUri(userDto.getClientId(), userDto.getRedirectUri()) != null)){
+			if((user != null) && (authService.matchRedirectUri(userDto.getClientId(), userDto.getRedirectUri()).block() != null)){
 				Token token = authService.getAuthTokenForUser(user);
 				this.authFlow.init(sessionId, userDto.getCodeChallange());
 				return new ResponseFactory()
@@ -149,34 +149,58 @@ public class AuthController {
 			@CookieValue(value="KF_SESSION_ID", required=false) String sessionId,
 			@PathVariable("dimension") String dimension
 	){
+		return authService.isClientValid(
+				client.getClientId(),
+				client.getClientSecret(),
+				client.getRedirectUri(),
+				client.getGrantType(),
+				dimension).flatMap((Boolean isValid) -> {
+					if(isValid) {
+						//success
+						logger.info("Client with id: {}, requested authorization",client.getClientId());
+						return new ResponseFactory()
+								.status(HttpStatus.OK)
+								.build();
+					}else {
+						return new ResponseFactory()
+								.status(HttpStatus.BAD_REQUEST)
+								.error(List.of("Invalid requester details"))
+								.build();
+					}
+				}).onErrorResume((Throwable t) -> {
+					return new ResponseFactory()
+							.status(HttpStatus.BAD_REQUEST)
+							.error(List.of(t.getLocalizedMessage()))
+							.build();
+				});
 
-		try {
-			if(authService.isClientValid(
-					client.getClientId(),
-					client.getClientSecret(),
-					client.getRedirectUri(),
-					client.getGrantType(),
-					dimension
-					)){
-				//success
-				logger.info("Client with id: {}, requested authorization",client.getClientId());
-				return new ResponseFactory()
-						.status(HttpStatus.OK)
-						.build();
-			}
-		} catch (Exception e) {
-			logger.error("Error occured because of {}",e.getMessage());
-			return new ResponseFactory()
-					.status(HttpStatus.BAD_REQUEST)
-					.error(List.of(e.getLocalizedMessage()))
-					.build();
-		}
-
-		// all cases failure
-
-		return new ResponseFactory()
-				.status(HttpStatus.BAD_REQUEST)
-				.error(List.of("Invalid requester details"))
-				.build();
+//		try {
+//			if(authService.isClientValid(
+//					client.getClientId(),
+//					client.getClientSecret(),
+//					client.getRedirectUri(),
+//					client.getGrantType(),
+//					dimension
+//					)){
+//				//success
+//				logger.info("Client with id: {}, requested authorization",client.getClientId());
+//				return new ResponseFactory()
+//						.status(HttpStatus.OK)
+//						.build();
+//			}
+//		} catch (Exception e) {
+//			logger.error("Error occured because of {}",e.getMessage());
+//			return new ResponseFactory()
+//					.status(HttpStatus.BAD_REQUEST)
+//					.error(List.of(e.getLocalizedMessage()))
+//					.build();
+//		}
+//
+//		// all cases failure
+//
+//		return new ResponseFactory()
+//				.status(HttpStatus.BAD_REQUEST)
+//				.error(List.of("Invalid requester details"))
+//				.build();
 	}
 }
