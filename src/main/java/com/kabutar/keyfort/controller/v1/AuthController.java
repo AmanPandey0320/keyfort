@@ -62,11 +62,29 @@ public class AuthController {
 		Mono<User> userMono = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword());
 		
 		return userMono.flatMap(user -> {
-			logger.info(user.toString());
-			return new ResponseFactory()
-					.message(List.of("Found"))
-					.status(HttpStatus.FOUND)
-					.build();
+			logger.debug("User found with details: {}",user.toString());
+			try {
+				return authService.matchRedirectUri(userDto.getClientId(), userDto.getRedirectUri())
+						.hasElement()
+						.flatMap(isValid -> {
+							Token token = authService.getAuthTokenForUser(user);
+							this.authFlow.init(sessionId, userDto.getCodeChallange());
+							
+							return new ResponseFactory()
+							.status(HttpStatus.OK)
+							.data(List.of( Map.of("authorizationCode",token.getToken())))
+							.build();
+				});
+			} catch (Exception e) {
+				logger.error("Error on login action, reason: {}",e.getLocalizedMessage());
+				logger.debug(e);
+				return new ResponseFactory()
+						.error(List.of(e.getMessage()))
+						.status(HttpStatus.INTERNAL_SERVER_ERROR)
+						.build();
+			}
+			
+			
 		})
 		.onErrorResume((Throwable t) -> {
 			return new ResponseFactory()
@@ -75,30 +93,9 @@ public class AuthController {
 			.build();
 		})
 		.defaultIfEmpty(new ResponseFactory()
-				.error(List.of("Invalid credentials!"))
+				.error(List.of("username or password is wrong!"))
 				.status(HttpStatus.UNAUTHORIZED)
 				.build().block());
-//		try {
-//			User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword());
-//			
-//			if((user != null) && (authService.matchRedirectUri(userDto.getClientId(), userDto.getRedirectUri()).block() != null)){
-//				Token token = authService.getAuthTokenForUser(user);
-//				this.authFlow.init(sessionId, userDto.getCodeChallange());
-//				return new ResponseFactory()
-//						.status(HttpStatus.OK)
-//						.data(List.of( Map.of("authorizationCode",token.getToken())))
-//						.build();
-//			}
-//			return new ResponseFactory()
-//					.error(List.of("Invalid credentials!"))
-//					.status(HttpStatus.UNAUTHORIZED)
-//					.build();
-//		}catch(Exception e) {
-//			return new ResponseFactory()
-//					.error(List.of(e.getLocalizedMessage()))
-//					.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//					.build();
-//		}
 		
 	}
 
