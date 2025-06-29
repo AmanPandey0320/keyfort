@@ -122,14 +122,14 @@ public class AuthService {
      * @param clientId
      * @return
      */
-    public User matchUserCredential(String username, String password){
+    public Mono<User> matchUserCredential(String username, String password){
         User user = userRepository.findByUsername(username);
 
         if(user == null){
         	logger.info("User with username: {} login failed for invalid dimension or clienti-id",username);
-            return null;
+            return Mono.empty();
         }
-        
+       
         logger.debug("User with username: {} found",user.getUsername());
         
 
@@ -137,18 +137,19 @@ public class AuthService {
 
         if(credentialList.size() != 1){
             // user should have 1 active credential
-        	logger.info("User with username: {} has multiple active credentials",username);
-            return null;
+        	logger.info("User with username: {} has multiple or no active credentials",username);
+        	logger.debug("User with username: {} has {} active credentials",username,credentialList.size());
+            Mono.empty();
         }
         Credential credential = credentialList.get(0);
 
         if(PasswordEncoderUtil.matches(password,credential.getHash())){
         	logger.info("User with username: {} login success for valid credentials",username);
-            return user;
+            return Mono.just(user);
         }
 
         logger.info("User with username: {} login failed for invalid credentials",username);
-        return null;
+        return Mono.empty();
     }
 
 

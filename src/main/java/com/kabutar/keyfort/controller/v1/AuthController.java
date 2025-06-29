@@ -59,27 +59,46 @@ public class AuthController {
 					.build();
 		}
 		
-		try {
-			User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword());
-			
-			if((user != null) && (authService.matchRedirectUri(userDto.getClientId(), userDto.getRedirectUri()).block() != null)){
-				Token token = authService.getAuthTokenForUser(user);
-				this.authFlow.init(sessionId, userDto.getCodeChallange());
-				return new ResponseFactory()
-						.status(HttpStatus.OK)
-						.data(List.of( Map.of("authorizationCode",token.getToken())))
-						.build();
-			}
+		Mono<User> userMono = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword());
+		
+		return userMono.flatMap(user -> {
+			logger.info(user.toString());
 			return new ResponseFactory()
-					.error(List.of("Invalid credentials!"))
-					.status(HttpStatus.UNAUTHORIZED)
+					.message(List.of("Found"))
+					.status(HttpStatus.FOUND)
 					.build();
-		}catch(Exception e) {
+		})
+		.onErrorResume((Throwable t) -> {
 			return new ResponseFactory()
-					.error(List.of(e.getLocalizedMessage()))
-					.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.build();
-		}
+			.error(List.of(t.getLocalizedMessage()))
+			.status(HttpStatus.INTERNAL_SERVER_ERROR)
+			.build();
+		})
+		.defaultIfEmpty(new ResponseFactory()
+				.error(List.of("Invalid credentials!"))
+				.status(HttpStatus.UNAUTHORIZED)
+				.build().block());
+//		try {
+//			User user = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword());
+//			
+//			if((user != null) && (authService.matchRedirectUri(userDto.getClientId(), userDto.getRedirectUri()).block() != null)){
+//				Token token = authService.getAuthTokenForUser(user);
+//				this.authFlow.init(sessionId, userDto.getCodeChallange());
+//				return new ResponseFactory()
+//						.status(HttpStatus.OK)
+//						.data(List.of( Map.of("authorizationCode",token.getToken())))
+//						.build();
+//			}
+//			return new ResponseFactory()
+//					.error(List.of("Invalid credentials!"))
+//					.status(HttpStatus.UNAUTHORIZED)
+//					.build();
+//		}catch(Exception e) {
+//			return new ResponseFactory()
+//					.error(List.of(e.getLocalizedMessage()))
+//					.status(HttpStatus.INTERNAL_SERVER_ERROR)
+//					.build();
+//		}
 		
 	}
 
