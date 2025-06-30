@@ -67,7 +67,7 @@ public class AuthController {
 				return authService.matchRedirectUri(userDto.getClientId(), userDto.getRedirectUri())
 						.hasElement()
 						.flatMap(isValid -> {
-							Token token = authService.getAuthTokenForUser(user);
+							Token token = authService.getAuthTokenForUser(user).block();
 							this.authFlow.init(sessionId, userDto.getCodeChallange());
 							
 							return new ResponseFactory()
@@ -110,53 +110,64 @@ public class AuthController {
 			@PathVariable("dimension") String dimension,
 			ServerWebExchange exchange
 	){
-		try{
+		
 			String sessionId = exchange.getAttributeOrDefault(AuthConstant.CookieType.SESSION_ID, null);
-			Map<String,Object> tokens = authService.exchangeForTokens(tokenDto.getToken(),tokenDto.getClientSecret(), dimension,sessionId);
-
-			if(!((boolean) tokens.get("isValid"))){
+			return authService.exchangeForTokens(tokenDto.getToken(),tokenDto.getClientSecret(), dimension,sessionId).flatMap(tokens -> {
+				if(!((boolean) tokens.get("isValid"))){
+					return new ResponseFactory()
+							.error((List<String>)tokens.getOrDefault("errors",List.of("Unexpected error")))
+							.status(HttpStatus.UNAUTHORIZED)
+							.build();
+				}
+				
+				try {
+					if(!this.authFlow.verify(sessionId, tokenDto.getCodeVerifier())) {
+						return new ResponseFactory()
+								.error(List.of("Invalid requester"))
+								.status(HttpStatus.BAD_REQUEST)
+								.build();
+					}
+				} catch (Exception e) {
+					logger.error("Error on token generation, reason: {}",e.getLocalizedMessage());
+					logger.debug(e);
+					return new ResponseFactory()
+							.error(List.of(e.getMessage()))
+							.status(HttpStatus.INTERNAL_SERVER_ERROR)
+							.build();
+				}
+				
+				ResponseCookie accessTokenCookie = ResponseCookie.from(AuthConstant.CookieType.ACCESS_TOKEN,(String)tokens.get("access"))
+						.httpOnly(true)
+						.path("/")
+						.maxAge(AuthConstant.ExpiryTime.ACCESS_TOKEN)
+		                .build();
+				
+				ResponseCookie refreshTokenCookie = ResponseCookie.from(AuthConstant.CookieType.ACCESS_TOKEN,(String)tokens.get("refresh"))
+						.httpOnly(true)
+						.path("/")
+						.maxAge(AuthConstant.ExpiryTime.REFRESH_TOKEN)
+		                .build();
+	
 				return new ResponseFactory()
-						.error((List<String>)tokens.getOrDefault("errors",List.of("Unexpected error")))
-						.status(HttpStatus.UNAUTHORIZED)
+						.cookie(accessTokenCookie)
+						.cookie(refreshTokenCookie)
+						.data(List.of(Map.of(
+								"accessToken", tokens.get("access"),
+								"refreshToken", tokens.get("refresh")
+						)))
+						.status(HttpStatus.OK)
 						.build();
-			}
-			
-			if(!this.authFlow.verify(sessionId, tokenDto.getCodeVerifier())) {
+			})
+			.onErrorResume(t -> {
 				return new ResponseFactory()
-						.error(List.of("Invalid requester"))
-						.status(HttpStatus.BAD_REQUEST)
+						.status(HttpStatus.INTERNAL_SERVER_ERROR)
+						.error(List.of(t.getMessage()))
 						.build();
-			}
-			
-			ResponseCookie accessTokenCookie = ResponseCookie.from(AuthConstant.CookieType.ACCESS_TOKEN,(String)tokens.get("access"))
-					.httpOnly(true)
-					.path("/")
-					.maxAge(AuthConstant.ExpiryTime.ACCESS_TOKEN)
-	                .build();
-			
-			ResponseCookie refreshTokenCookie = ResponseCookie.from(AuthConstant.CookieType.ACCESS_TOKEN,(String)tokens.get("refresh"))
-					.httpOnly(true)
-					.path("/")
-					.maxAge(AuthConstant.ExpiryTime.REFRESH_TOKEN)
-	                .build();
-
-			return new ResponseFactory()
-					.cookie(accessTokenCookie)
-					.cookie(refreshTokenCookie)
-					.data(List.of(Map.of(
-							"accessToken", tokens.get("access"),
-							"refreshToken", tokens.get("refresh")
-					)))
-					.status(HttpStatus.OK)
-					.build();
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			return new ResponseFactory()
+			})
+			.defaultIfEmpty(new ResponseFactory()
 					.status(HttpStatus.INTERNAL_SERVER_ERROR)
-					.error(List.of(e.getLocalizedMessage()))
-					.build();
-		}
+					.error(List.of("Unknown error occured"))
+					.build().block());	
     }
 	
 	@PostMapping("/authz_client")
@@ -189,34 +200,5 @@ public class AuthController {
 							.error(List.of(t.getLocalizedMessage()))
 							.build();
 				});
-
-//		try {
-//			if(authService.isClientValid(
-//					client.getClientId(),
-//					client.getClientSecret(),
-//					client.getRedirectUri(),
-//					client.getGrantType(),
-//					dimension
-//					)){
-//				//success
-//				logger.info("Client with id: {}, requested authorization",client.getClientId());
-//				return new ResponseFactory()
-//						.status(HttpStatus.OK)
-//						.build();
-//			}
-//		} catch (Exception e) {
-//			logger.error("Error occured because of {}",e.getMessage());
-//			return new ResponseFactory()
-//					.status(HttpStatus.BAD_REQUEST)
-//					.error(List.of(e.getLocalizedMessage()))
-//					.build();
-//		}
-//
-//		// all cases failure
-//
-//		return new ResponseFactory()
-//				.status(HttpStatus.BAD_REQUEST)
-//				.error(List.of("Invalid requester details"))
-//				.build();
 	}
 }

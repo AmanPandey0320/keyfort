@@ -158,7 +158,7 @@ public class AuthService {
      * @param user
      * @return
      */
-    public Token getAuthTokenForUser(User user){
+    public Mono<Token> getAuthTokenForUser(User user){
         Token token = new Token();
         Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
 
@@ -172,7 +172,7 @@ public class AuthService {
         
         logger.debug("User with username: {} has an authcode",user.getUsername());
 
-        return token;
+        return Mono.just(token);
     }
 
     /**
@@ -231,7 +231,7 @@ public class AuthService {
      * @param grantType
      * @return
      */
-    public Map<String,Object> exchangeForTokens(String token,String clientSecret, String dimension, String sessionId){
+    public Mono<Map<String,Object>> exchangeForTokens(String token,String clientSecret, String dimension, String sessionId){
         Token savedToken = tokenRepository.findByToken(token);
         boolean isValid = true;
         List<String> errors = new ArrayList<>();
@@ -261,7 +261,7 @@ public class AuthService {
         }
         
         if(!isValid) {
-        	return Map.of("isValid",isValid, "errors",errors);
+        	return Mono.just(Map.of("isValid",isValid, "errors",errors));
         }
         
         if(sessionId == null) {
@@ -302,12 +302,12 @@ public class AuthService {
         
         logger.debug("access token and new session generated for user: {}",user.getUsername());
         
-        return Map.of(
+        return Mono.just(Map.of(
                 "isValid",true,
                 "refresh",refreshToken,
                 "access",accessToken,
                 "errors",errors
-        );
+        ));
     }
 
     /**
