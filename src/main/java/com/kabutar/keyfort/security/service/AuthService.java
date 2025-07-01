@@ -50,7 +50,7 @@ public class AuthService {
     private SessionRepository sessionRepository;
 
     @Autowired
-    private Jwt jwtService;
+    private Jwt jwt;
 
     @Autowired
     private RoleService roleService;
@@ -271,43 +271,45 @@ public class AuthService {
         }
 
         User user = savedToken.getUser();
-        List<String> roles = roleService.getRolesForUser(savedToken.getUser());
-        String accessToken = null;
-        String refreshToken = null;
-        
         //mark current auth token as invalid
         savedToken.setValid(false);
         
         //save to repository
         tokenRepository.save(savedToken);
         
+        return roleService.getRolesForUser(savedToken.getUser()).flatMap(roles -> {
+        	String accessToken = null;
+            String refreshToken = null;
+            accessToken = jwt.generateToken(
+                    Map.of(
+                            AuthConstant.ClaimType.ROLE,roles,
+                            AuthConstant.ClaimType.SESSION,sessionId
+                    ),
+                    user.getUsername(),
+                    AuthConstant.ExpiryTime.ACCESS_TOKEN
+            );
+            
+            refreshToken = jwt.generateToken(
+                    Map.of(
+                            AuthConstant.ClaimType.ROLE,roles,
+                            AuthConstant.ClaimType.SESSION,sessionId
+                    ),
+                    user.getUsername(),
+                    AuthConstant.ExpiryTime.REFRESH_TOKEN
+            );
+            
+            logger.debug("access token and new session generated for user: {}",user.getUsername());
+            
+            return Mono.just(Map.of(
+                    "isValid",true,
+                    "refresh",refreshToken,
+                    "access",accessToken,
+                    "errors",errors
+            ));
+        });
         
-        accessToken = jwtService.generateToken(
-                Map.of(
-                        AuthConstant.ClaimType.ROLE,roles,
-                        AuthConstant.ClaimType.SESSION,sessionId
-                ),
-                user.getUsername(),
-                AuthConstant.ExpiryTime.ACCESS_TOKEN
-        );
         
-        refreshToken = jwtService.generateToken(
-                Map.of(
-                        AuthConstant.ClaimType.ROLE,roles,
-                        AuthConstant.ClaimType.SESSION,sessionId
-                ),
-                user.getUsername(),
-                AuthConstant.ExpiryTime.REFRESH_TOKEN
-        );
         
-        logger.debug("access token and new session generated for user: {}",user.getUsername());
-        
-        return Mono.just(Map.of(
-                "isValid",true,
-                "refresh",refreshToken,
-                "access",accessToken,
-                "errors",errors
-        ));
     }
 
     /**
@@ -318,7 +320,7 @@ public class AuthService {
      */
     @Transactional
     public boolean validateAccessToken(String accessToken) {
-        Claims claims = jwtService.extractAllClaim(accessToken);
+        Claims claims = jwt.extractAllClaim(accessToken);
         
         String userName = claims.getSubject();
         String sessionId = (String) claims.get(AuthConstant.ClaimType.SESSION);
@@ -340,22 +342,5 @@ public class AuthService {
         
         return true;
     }
-    
-    
-//    public String getReirectUriWithAuthCode(String uri,String authCode) {
-//    	StringBuilder sb = new StringBuilder();
-//    	sb.append(uri);
-//    	
-//    	if(uri.contains("?")) {
-//    		//already has an query
-//    		sb.append("&auth_code=");
-//    	}else {
-//    		sb.append("?auth_code=");
-//    	}
-//    	
-//    	sb.append(authCode);
-//    	
-//    	return sb.toString();
-//    }
 
 }

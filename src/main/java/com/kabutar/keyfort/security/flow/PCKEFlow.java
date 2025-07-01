@@ -9,6 +9,8 @@ import com.kabutar.keyfort.constant.CacheConstant;
 import com.kabutar.keyfort.security.interfaces.SecureAuthFlow;
 import com.kabutar.keyfort.util.Encryption;
 
+import reactor.core.publisher.Mono;
+
 @Component
 public class PCKEFlow implements SecureAuthFlow {
 	
@@ -24,20 +26,26 @@ public class PCKEFlow implements SecureAuthFlow {
 	}
 
 	@Override
-	public void init(String session, String challange) {
+	public Mono<Void> init(String session, String challange) {
 		this.cacheRepository.storeObject(this.store, session, challange);
+		return Mono.empty();
 		
 	}
 
 	@Override
-	public boolean verify(String session, String code) throws NoSuchAlgorithmException {
+	public Mono<Boolean> verify(String session, String code) {
 		// TODO Auto-generated method stub
-		String challange = (String) this.cacheRepository.retriveObject(this.store, session);
-		String encryptedCode = Encryption.withSHA3(code);
-		if(challange.equals(encryptedCode)) {
-			return true;
+		try {
+			String challange = (String) this.cacheRepository.retriveObject(this.store, session);
+			String encryptedCode = Encryption.withSHA3(code);
+			if(challange.equals(encryptedCode)) {
+				return Mono.just(true);
+			}
+			return Mono.just(false);
+		}catch(Exception e) {
+			return Mono.error(e);
 		}
-		return false;
+		
 	}
 
 	

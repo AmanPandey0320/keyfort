@@ -53,6 +53,7 @@ public class AuthController {
 		String sessionId = exchange.getAttributeOrDefault(AuthConstant.CookieType.SESSION_ID, null);
 		
 		if(sessionId == null) {
+			logger.debug("No valid session found");
 			return new ResponseFactory()
 					.error(List.of("No valid session found"))
 					.status(HttpStatus.UNAUTHORIZED)
@@ -68,7 +69,16 @@ public class AuthController {
 						.hasElement()
 						.flatMap(isValid -> {
 							Token token = authService.getAuthTokenForUser(user).block();
-							this.authFlow.init(sessionId, userDto.getCodeChallange());
+							
+							//handling authflow
+							this.authFlow.init(sessionId, userDto.getCodeChallange())
+							.subscribe((data) -> {
+								logger.debug("Auth flow initiated for session {}",sessionId);
+							},
+							(Throwable t) -> {
+								logger.error("Error occured while initializing authflow, reason: {}",t.getLocalizedMessage());
+								logger.debug("Authflow error: ", t);
+							});
 							
 							return new ResponseFactory()
 							.status(HttpStatus.OK)
@@ -120,43 +130,48 @@ public class AuthController {
 							.build();
 				}
 				
-				try {
-					if(!this.authFlow.verify(sessionId, tokenDto.getCodeVerifier())) {
-						return new ResponseFactory()
-								.error(List.of("Invalid requester"))
-								.status(HttpStatus.BAD_REQUEST)
-								.build();
-					}
-				} catch (Exception e) {
-					logger.error("Error on token generation, reason: {}",e.getLocalizedMessage());
-					logger.debug(e);
-					return new ResponseFactory()
-							.error(List.of(e.getMessage()))
-							.status(HttpStatus.INTERNAL_SERVER_ERROR)
-							.build();
-				}
+				return this.authFlow.verify(sessionId, tokenDto.getCodeVerifier())
+	                    .flatMap(isVerified -> {
+	                        if (!isVerified) {
+	                            return new ResponseFactory()
+	                                    .error(List.of("Invalid requester or code verifier"))
+	                                    .status(HttpStatus.BAD_REQUEST)
+	                                    .build();
+	                        }
+
+	                        // If verification is successful, proceed to build the success response
+	                        ResponseCookie accessTokenCookie = ResponseCookie.from(AuthConstant.CookieType.ACCESS_TOKEN, (String) tokens.get("access"))
+	                                .httpOnly(true)
+	                                .path("/")
+	                                .maxAge(AuthConstant.ExpiryTime.ACCESS_TOKEN)
+	                                .build();
+
+	                        ResponseCookie refreshTokenCookie = ResponseCookie.from(AuthConstant.CookieType.REFRESH_TOKEN, (String) tokens.get("refresh")) // Corrected cookie name
+	                                .httpOnly(true)
+	                                .path("/")
+	                                .maxAge(AuthConstant.ExpiryTime.REFRESH_TOKEN)
+	                                .build();
+
+	                        return new ResponseFactory()
+	                                .cookie(accessTokenCookie)
+	                                .cookie(refreshTokenCookie)
+	                                .data(List.of(Map.of(
+	                                        "accessToken", tokens.get("access"),
+	                                        "refreshToken", tokens.get("refresh")
+	                                )))
+	                                .status(HttpStatus.OK)
+	                                .build();
+	                    })
+	                    .onErrorResume(e -> {
+	                        // Catch errors specifically from authFlow.verify
+	                        logger.error("Error during authFlow verification, reason: {}", e.getLocalizedMessage());
+	                        logger.debug("Verification error details: ", e);
+	                        return new ResponseFactory()
+	                                .error(List.of("Verification failed: " + e.getMessage()))
+	                                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                                .build();
+	                    });
 				
-				ResponseCookie accessTokenCookie = ResponseCookie.from(AuthConstant.CookieType.ACCESS_TOKEN,(String)tokens.get("access"))
-						.httpOnly(true)
-						.path("/")
-						.maxAge(AuthConstant.ExpiryTime.ACCESS_TOKEN)
-		                .build();
-				
-				ResponseCookie refreshTokenCookie = ResponseCookie.from(AuthConstant.CookieType.ACCESS_TOKEN,(String)tokens.get("refresh"))
-						.httpOnly(true)
-						.path("/")
-						.maxAge(AuthConstant.ExpiryTime.REFRESH_TOKEN)
-		                .build();
-	
-				return new ResponseFactory()
-						.cookie(accessTokenCookie)
-						.cookie(refreshTokenCookie)
-						.data(List.of(Map.of(
-								"accessToken", tokens.get("access"),
-								"refreshToken", tokens.get("refresh")
-						)))
-						.status(HttpStatus.OK)
-						.build();
 			})
 			.onErrorResume(t -> {
 				return new ResponseFactory()

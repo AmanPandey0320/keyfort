@@ -4,12 +4,14 @@ import org.springframework.stereotype.Service;
 
 import com.kabutar.keyfort.data.entity.User;
 
+import reactor.core.publisher.Mono;
+
 import java.util.List;
 
 @Service
 public class RoleService {
 
-    public List<String> getRolesForUser(User user){
-        return List.of("default");
+    public Mono<List<String>> getRolesForUser(User user){
+        return Mono.just(List.of("default"));
     }
 }

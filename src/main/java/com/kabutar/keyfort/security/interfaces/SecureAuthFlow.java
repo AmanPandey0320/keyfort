@@ -1,6 +1,8 @@
 package com.kabutar.keyfort.security.interfaces;
 
+import reactor.core.publisher.Mono;
+
 public interface SecureAuthFlow {
-	void init(String session, String challange);
-	boolean verify(String session, String code) throws Exception;
+	Mono<Void> init(String session, String challange);
+	Mono<Boolean> verify(String session, String code);
 }
