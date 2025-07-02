@@ -19,6 +19,7 @@ import org.springframework.web.server.WebFilterChain;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kabutar.keyfort.config.AuthConfig;
 import com.kabutar.keyfort.constant.AuthConstant;
@@ -56,43 +57,63 @@ public class AuthrizationFilter implements WebFilter  {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		
-		ServerHttpResponse response = exchange.getResponse();
-		
 		if(this.shouldNotFilter(exchange.getRequest())) {
 			return chain.filter(exchange);
 		}
 		
+		ServerHttpResponse response = exchange.getResponse();
+		HttpCookie accessTokenCookie = exchange
+				.getRequest()
+				.getCookies()
+				.getOrDefault(AuthConstant.CookieType.ACCESS_TOKEN, List.of())
+				.stream()
+				.findFirst()
+				.orElse(null);
 		
+		if(accessTokenCookie != null) {
+			return authService.validateAccessToken(accessTokenCookie.getValue()).flatMap(isValid -> {
+				if(isValid) {
+					return chain.filter(exchange);
+				}
+				
+				return this.sendErrorResponse(response);
+				
+			});
+		}
+		return this.sendErrorResponse(response);
+	}
+	
+	/**
+	 * 
+	 * @param response
+	 * @return
+	 */
+	private Mono<Void> sendErrorResponse(ServerHttpResponse response) {
 		try {
-			HttpCookie accessTokenCookie = exchange
-					.getRequest()
-					.getCookies()
-					.getOrDefault(AuthConstant.CookieType.ACCESS_TOKEN, List.of())
-					.stream()
-					.findFirst()
-					.orElse(null);
+			String responseBody = this.objectMapper.writeValueAsString(Map.of("error", List.of("Unauthorized")));
+			response.setStatusCode(HttpStatus.UNAUTHORIZED);
+			response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 			
-			if((accessTokenCookie == null) || (authService.validateAccessToken(accessTokenCookie.getValue()))) {
-				String responseBody = this.objectMapper.writeValueAsString(Map.of("error", List.of("Unauthorized")));
-				response.setStatusCode(HttpStatus.UNAUTHORIZED);
-				response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-				
-				logger.error("Error at authorization filter: unauthorized access");
-				
-				return response.writeWith(Mono.just(response.bufferFactory().wrap(responseBody.getBytes(StandardCharsets.UTF_8))));
-				
-			}
-		}catch(Exception e) {
-			logger.error("Error in authorization filter: {}",e.getMessage());
+			logger.error("Error at authorization filter: unauthorized access");
+			
+			return response.writeWith(Mono.just(response.bufferFactory().wrap(responseBody.getBytes(StandardCharsets.UTF_8))));
+		} catch (JsonProcessingException e) {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
+			logger.error("Error in authorization filter: {}",e.getLocalizedMessage());
+			logger.debug(e);
 			response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
 			
 			return response.writeWith(Mono.empty());
-			
 		}
-		return chain.filter(exchange);
+		
 	}
-
+	
+	/**
+	 * 
+	 * @param request
+	 * @return
+	 */
 	private boolean shouldNotFilter( ServerHttpRequest request ) {
 		String path = request.getPath().toString();
 		String method = request.getMethod().name();
@@ -107,8 +128,7 @@ public class AuthrizationFilter implements WebFilter  {
 			}
 		}
 		return false;
-	}
-//	
+	}	
 	
 
 }

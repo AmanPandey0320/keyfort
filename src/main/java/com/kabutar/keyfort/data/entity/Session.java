@@ -20,7 +20,7 @@ public class Session {
 	@GeneratedValue(strategy = GenerationType.UUID)
 	private String id;
 	
-	@ManyToOne(fetch = FetchType.LAZY)
+	@ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "userId", nullable = true)
 	private User user;
 	

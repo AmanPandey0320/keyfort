@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -233,6 +235,7 @@ public class AuthService {
      */
     public Mono<Map<String,Object>> exchangeForTokens(String token,String clientSecret, String dimension, String sessionId){
         Token savedToken = tokenRepository.findByToken(token);
+        Session session = sessionRepository.findById(sessionId).orElseThrow();
         boolean isValid = true;
         List<String> errors = new ArrayList<>();
         
@@ -274,8 +277,15 @@ public class AuthService {
         //mark current auth token as invalid
         savedToken.setValid(false);
         
+        
+        //setting user to session
+        session.setUser(user);
+        session.setAuthenticated(true);
+        session.setLastUsed(new Date());
+        
         //save to repository
         tokenRepository.save(savedToken);
+        sessionRepository.save(session);
         
         return roleService.getRolesForUser(savedToken.getUser()).flatMap(roles -> {
         	String accessToken = null;
@@ -319,7 +329,7 @@ public class AuthService {
      * @return
      */
     @Transactional
-    public boolean validateAccessToken(String accessToken) {
+    public Mono<Boolean> validateAccessToken(String accessToken) {
         Claims claims = jwt.extractAllClaim(accessToken);
         
         String userName = claims.getSubject();
@@ -331,16 +341,16 @@ public class AuthService {
         logger.debug("recieved session id {}",session.getId());
         
         if(!(session.getId().equals(sessionId) && session.getUser().getUsername().equals(userName))) {
-        	return false;
+        	return Mono.just(false);
         }
         
         if((session.getLastUsed().getTime() + AuthConstant.ExpiryTime.ACCESS_TOKEN * 1000) <= System.currentTimeMillis()) {
-        	return false;
+        	return Mono.just(false);
         }
         
         //roles check to be implemented as part of rbac
         
-        return true;
+        return Mono.just(true);
     }
 
 }
