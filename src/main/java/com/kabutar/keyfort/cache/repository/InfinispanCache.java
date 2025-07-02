@@ -9,6 +9,8 @@ import org.infinispan.manager.EmbeddedCacheManager;
 import com.kabutar.keyfort.cache.intefaces.CacheRepository;
 import com.kabutar.keyfort.cache.metadata.PkceMetadata;
 
+import reactor.core.publisher.Mono;
+
 @Component
 @ConditionalOnProperty(name = "cache.type", havingValue = "INF-EMB")
 public class InfinispanCache implements CacheRepository {
@@ -28,18 +30,19 @@ public class InfinispanCache implements CacheRepository {
 
 
 	@Override
-	public void storeObject(String store, Object key, Object value) {
-		this.cacheManager.getCache(store).put(key, value);
+	public Mono<Void> storeObject(String store, Object key, Object value) {
+		this.cacheManager.getCache(store).putAsync(key, value);
+		return Mono.empty();
 	}
 
 
 
 	@Override
-	public Object retriveObject(String store, Object key) {
+	public Mono<?> retriveObject(String store, String key) {
 		Cache<String,String> cache = cacheManager.getCache(store);
-		String data = cache.get(key);
+		Mono<String> data = Mono.fromCompletionStage(() -> cache.getAsync(key));
 		if(this.deleteOnRetrive) {
-			cache.remove(key);
+			cache.removeAsync(key);
 		}
 		return data;
 	}

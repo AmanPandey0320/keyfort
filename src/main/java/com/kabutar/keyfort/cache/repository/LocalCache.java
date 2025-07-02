@@ -8,6 +8,8 @@ import org.springframework.stereotype.Component;
 
 import com.kabutar.keyfort.cache.intefaces.CacheRepository;
 
+import reactor.core.publisher.Mono;
+
 @Component
 @ConditionalOnProperty(name = "cache.type", havingValue = "LOCAL")
 public class LocalCache implements CacheRepository {
@@ -22,15 +24,16 @@ public class LocalCache implements CacheRepository {
 	}
 
 	@Override
-	public void storeObject(String store, Object key, Object value) {
+	public Mono<Void> storeObject(String store, Object key, Object value) {
 		this.cache.put(key, value);
+		return Mono.empty();
 
 	}
 
 	@Override
-	public Object retriveObject(String store, Object key) {
+	public Mono<?> retriveObject(String store, String key) {
 		if(this.cache.containsKey(key)) {
-			return this.cache.get(key);
+			return Mono.just(this.cache.get(key));
 		}
 		return null;
 	}

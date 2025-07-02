@@ -179,35 +179,6 @@ public class AuthService {
 
     /**
      *
-     * @param userId
-     * @param password
-     * @return
-     */
-    public Credential createCredential(String userId, String password){
-        Credential credential = new Credential();
-        Optional<User> userOp = userRepository.findById(userId);
-        
-        if(userOp.isEmpty()) {
-        	return null;
-        }
-        
-        User user = userOp.get();
-
-        credential.setUser(user);
-        credential.setHash(PasswordEncoderUtil.encodePassword(password));
-        credential.setActive(true);
-
-        credentialRepository.setAllUserCredentialsInactive(user.getId());
-        credential = credentialRepository.save(credential);
-        
-        logger.debug("Credential created for user: {}",user.getUsername());
-
-        return credential;
-
-    }
-
-    /**
-     *
      * @param token
      * @return
      */

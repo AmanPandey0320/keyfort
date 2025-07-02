@@ -2,6 +2,8 @@ package com.kabutar.keyfort.security.flow;
 
 import java.security.NoSuchAlgorithmException;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Component;
 
 import com.kabutar.keyfort.cache.intefaces.CacheRepository;
@@ -13,6 +15,8 @@ import reactor.core.publisher.Mono;
 
 @Component
 public class PCKEFlow implements SecureAuthFlow {
+	
+	private final Logger logger = LogManager.getLogger(PCKEFlow.class);
 	
 	private CacheRepository cacheRepository;
 	private String store;
@@ -34,17 +38,21 @@ public class PCKEFlow implements SecureAuthFlow {
 
 	@Override
 	public Mono<Boolean> verify(String session, String code) {
-		// TODO Auto-generated method stub
-		try {
-			String challange = (String) this.cacheRepository.retriveObject(this.store, session);
-			String encryptedCode = Encryption.withSHA3(code);
-			if(challange.equals(encryptedCode)) {
-				return Mono.just(true);
+		return this.cacheRepository.retriveObject(this.store, session).flatMap((Object challenge) -> {
+			String encryptedCode;
+			try {
+				encryptedCode = Encryption.withSHA3(code);
+				if(String.valueOf(challenge).equals(encryptedCode)) {
+					return Mono.just(true);
+				}
+				return Mono.just(false);
+			} catch (NoSuchAlgorithmException e) {
+				logger.error("Error occured in PKCE flow: {}",e.getLocalizedMessage());
+				logger.debug(e);
+				return Mono.error(e);
 			}
-			return Mono.just(false);
-		}catch(Exception e) {
-			return Mono.error(e);
-		}
+			
+		});
 		
 	}
 
