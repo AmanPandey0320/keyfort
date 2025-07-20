@@ -20,12 +20,8 @@ public class DimensionEntity extends BaseEntity {
     @ColumnName("is_active")
     private boolean isActive;
     
-    public static DimensionEntity getEntity(Row row) {
-    	DimensionEntity entity  = new DimensionEntity();
-    	entity.digest(row, DimensionEntity.class, entity);
-    	return entity;
+    public DimensionEntity(Row row){
+    	this.digest(row, getClass(), this);
     }
     
-    
-
 }
