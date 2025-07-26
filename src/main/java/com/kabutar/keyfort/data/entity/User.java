@@ -7,8 +7,6 @@ import lombok.ToString;
 
 import java.util.List;
 
-import com.kabutar.keyfort.data.entity.client.Client;
-
 @Entity
 @Getter
 @Setter
@@ -34,9 +32,9 @@ public class User {
     @Column(nullable = false)
     private boolean isVerified = false;
 
-    @ManyToOne
-    @JoinColumn(name = "clientId", nullable = false)
-    private Client client;
+//    @ManyToOne
+//    @JoinColumn(name = "clientId", nullable = false)
+//    private Client client;
 
     @OneToMany
     @ToString.Exclude

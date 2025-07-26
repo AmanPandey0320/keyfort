@@ -43,6 +43,11 @@ public abstract class BaseEntity {
     @Column(name = "updated_by", define = "VARCHAR(255)")
     protected String updatedBy;
     
+    @Column(name = "deleted_at", define = "TIMESTAMP")
+    protected LocalDateTime deletedAt;
+    
+    @Column(name = "is_deleted", define = "BOOLEAN NOT NULL DEFAULT FALSE")
+    protected boolean isDeleted;
     /**
      * Populates the fields of a {@link BaseEntity} object from a database row.
      * <p>

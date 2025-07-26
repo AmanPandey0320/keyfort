@@ -11,7 +11,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-@Entity("KF_DIMENSION")
+@Entity("dimensions")
 public class DimensionEntity extends BaseEntity {
 	
 	@Column(name = "id",define = "VARCHAR(256) PRIMARY KEY")

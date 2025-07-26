@@ -1,6 +1,7 @@
 package com.kabutar.keyfort.data.entity;
 
 import com.kabutar.keyfort.data.annotation.Column;
+import com.kabutar.keyfort.data.annotation.Entity;
 
 import io.r2dbc.spi.Row;
 import lombok.Getter;
@@ -10,7 +11,8 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class ClientEntity extends BaseEntity {
+@Entity("clients")
+public class Client extends BaseEntity {
 	
 	@Column(name = "id",define = "VARCHAR(256) PRIMARY KEY")
 	private String id;
@@ -30,7 +32,7 @@ public class ClientEntity extends BaseEntity {
 	@Column(name = "dimension_id", define = "VARCHAR(256) NOT NULL")
 	private String dimensionId;
 
-	public ClientEntity(Row row){
+	public Client(Row row){
     	this.digest(row, getClass(), this);
     }
 	
