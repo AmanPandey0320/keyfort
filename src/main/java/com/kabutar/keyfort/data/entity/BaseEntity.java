@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.kabutar.keyfort.data.annotation.Column;
 import com.kabutar.keyfort.security.service.AuthService;
 
 import io.r2dbc.spi.Row;
@@ -30,16 +31,16 @@ import lombok.experimental.SuperBuilder;
 public abstract class BaseEntity {
 	private final Logger logger = LogManager.getLogger(BaseEntity.class);
 
-    @ColumnName("created_at")
+    @Column(name = "created_at", define = "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP")
     protected LocalDateTime createdAt;
 
-    @ColumnName("updated_at")
+    @Column(name = "updated_at", define = "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
     protected LocalDateTime updatedAt;
 
-    @ColumnName("created_by")
+    @Column(name = "created_by", define = "VARCHAR(255)")
     protected String createdBy;
 
-    @ColumnName("updated_by")
+    @Column(name = "updated_by", define = "VARCHAR(255)")
     protected String updatedBy;
     
 	protected void digest(Row row,Class<?> clazz,BaseEntity object) {
@@ -47,11 +48,11 @@ public abstract class BaseEntity {
 			Field[] fields = clazz.getDeclaredFields();
 			
 			for(Field field:fields) {
-				if(field.isAnnotationPresent(ColumnName.class)) {
-					ColumnName column = field.getAnnotation(ColumnName.class);
+				if(field.isAnnotationPresent(Column.class)) {
+					Column column = field.getAnnotation(Column.class);
 					field.setAccessible(true);
 					try {
-						field.set(object, row.get(column.value(),field.getType()));
+						field.set(object, row.get(column.name(),field.getType()));
 					} catch (IllegalArgumentException | IllegalAccessException e) {
 						logger.error("Error while digesting: {} for class {}",field.getName(),clazz.getName());
 						logger.debug(e);

@@ -57,30 +57,22 @@ public class DimensionRepo extends BaseRepository {
 
 
 	@Override
-	@PostConstruct
-	public void create() {
-        String CREATE_DIMENSIONS_TABLE_SQL =
-                "CREATE TABLE IF NOT EXISTS dimensions (" +
-                "created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP," +
-                "updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP," +
-                "created_by VARCHAR(255)," +
-                "updated_by VARCHAR(255)," +
-                "id VARCHAR(255) PRIMARY KEY," +
-                "name VARCHAR(255) NOT NULL UNIQUE," +
-                "display_name VARCHAR(255)," +
-                "is_active BOOLEAN NOT NULL DEFAULT TRUE" +
-                ");";
+	public Mono<Void> create() throws Exception {
+        String CREATE_DIMENSIONS_TABLE_SQL = this.getCreateSQL(DimensionEntity.class);
 
         logger.info("Attempting to create table with SQL: {}", CREATE_DIMENSIONS_TABLE_SQL);
 
-        databaseClient.sql(CREATE_DIMENSIONS_TABLE_SQL).fetch().rowsUpdated().subscribe((item) -> {
-        	logger.info("Created table dimensions");
-        },
-        (e) -> {
-        	logger.error("Error creating dimensions table, reasom: {}",e.getMessage());
-        	logger.debug(e);
-        	System.exit(0);
-        });
+        return databaseClient.sql(CREATE_DIMENSIONS_TABLE_SQL).fetch().rowsUpdated().doOnSuccess(rows -> {
+            
+            logger.info("Created table dimensions (rowsUpdated: {})", rows);
+        })
+        .doOnError(e -> {
+            
+            logger.error("Error creating dimensions table, reason: {}", e.getMessage());
+            logger.debug("Full exception: ", e); // Log full stack trace for debug
+             throw new RuntimeException("Failed to create dimensions table", e);
+        })
+        .then();
 	}
     
     

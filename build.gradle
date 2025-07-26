@@ -39,9 +39,9 @@ dependencies {
     implementation 'mysql:mysql-connector-java:8.0.33'
     implementation 'com.zaxxer:HikariCP'
     
-    //implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
-    //implementation 'org.hibernate.reactive:hibernate-reactive-core:3.0.1.Final'
-    //implementation 'io.asyncer:r2dbc-mysql:1.4.1'
+    implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
+    implementation 'org.hibernate.reactive:hibernate-reactive-core:3.0.1.Final'
+    implementation 'io.asyncer:r2dbc-mysql:1.4.1'
     
     //logging depedencies
     implementation 'org.apache.logging.log4j:log4j-core:2.24.3'

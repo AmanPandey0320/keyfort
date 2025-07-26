@@ -1,4 +1,4 @@
-package com.kabutar.keyfort.service;
+package com.kabutar.keyfort.ui.service;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

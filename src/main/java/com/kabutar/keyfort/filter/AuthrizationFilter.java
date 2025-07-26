@@ -57,30 +57,33 @@ public class AuthrizationFilter implements WebFilter  {
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		
-		if(this.shouldNotFilter(exchange.getRequest())) {
-			return chain.filter(exchange);
-		}
+//		if(this.shouldNotFilter(exchange.getRequest())) {
+//			return chain.filter(exchange);
+//		}
+//		
+//		ServerHttpResponse response = exchange.getResponse();
+//		HttpCookie accessTokenCookie = exchange
+//				.getRequest()
+//				.getCookies()
+//				.getOrDefault(AuthConstant.CookieType.ACCESS_TOKEN, List.of())
+//				.stream()
+//				.findFirst()
+//				.orElse(null);
+//		
+//		if(accessTokenCookie != null) {
+//			return authService.validateAccessToken(accessTokenCookie.getValue()).flatMap(isValid -> {
+//				if(isValid) {
+//					return chain.filter(exchange);
+//				}
+//				
+//				return this.sendErrorResponse(response);
+//				
+//			});
+//		}
+//		return this.sendErrorResponse(response);
 		
-		ServerHttpResponse response = exchange.getResponse();
-		HttpCookie accessTokenCookie = exchange
-				.getRequest()
-				.getCookies()
-				.getOrDefault(AuthConstant.CookieType.ACCESS_TOKEN, List.of())
-				.stream()
-				.findFirst()
-				.orElse(null);
-		
-		if(accessTokenCookie != null) {
-			return authService.validateAccessToken(accessTokenCookie.getValue()).flatMap(isValid -> {
-				if(isValid) {
-					return chain.filter(exchange);
-				}
-				
-				return this.sendErrorResponse(response);
-				
-			});
-		}
-		return this.sendErrorResponse(response);
+		// TODO: remove this line
+		return chain.filter(exchange);
 	}
 	
 	/**

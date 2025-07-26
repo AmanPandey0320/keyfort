@@ -1,5 +1,5 @@
 package com.kabutar.keyfort.data.loader;
 
-public interface DefaultDataLoader {
+public interface DefaultLoader {
 	void loadData();
 }

@@ -1,23 +1,29 @@
 package com.kabutar.keyfort.data.entity;
 
+import com.kabutar.keyfort.data.annotation.Column;
+import com.kabutar.keyfort.data.annotation.Entity;
+
 import io.r2dbc.spi.Row;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 @Getter
+@Setter
 @ToString
+@Entity("KF_DIMENSION")
 public class DimensionEntity extends BaseEntity {
 	
-	@ColumnName("id")
+	@Column(name = "id",define = "VARCHAR(256) PRIMARY KEY")
     private String id;
 	
-	@ColumnName("name")
+	@Column(name = "name", define = "VARCHAR(256) NOT NULL UNIQUE")
     private String name;
     
-    @ColumnName("display_name")
+    @Column(name = "display_name", define = "VARCHAR(256)")
     private String displayName;
     
-    @ColumnName("is_active")
+    @Column(name = "is_active", define = "BOOLEAN NOT NULL DEFAULT TRUE")
     private boolean isActive;
     
     public DimensionEntity(Row row){
