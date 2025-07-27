@@ -1,22 +1,26 @@
 package com.kabutar.keyfort.data.repository;
 
-import reactor.core.publisher.Mono;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.r2dbc.core.DatabaseClient;
+import org.springframework.stereotype.Repository;
 
+import com.kabutar.keyfort.data.entity.Client;
+
+
+@Repository
 public class ClientRepo extends BaseRepository {
+	private final Logger logger = LogManager.getLogger(ClientRepo.class);
+	private final DatabaseClient databaseClient;
+	
+	public ClientRepo(DatabaseClient databaseClient) {
+        this.databaseClient = databaseClient;
+    }
 
 	@Override
-	public Mono<Void> create() {
-		// TODO Auto-generated method stub
-		String CREATE_CLIENT_ENTITY_TABLE_SQL =
-			    "CREATE TABLE client_entity (" +
-			    "id VARCHAR(255) PRIMARY KEY," +
-			    "secret VARCHAR(255) NOT NULL," +
-			    "grant_type VARCHAR(255)," +
-			    "redirect_uri VARCHAR(2048)," +
-			    "name VARCHAR(255) NOT NULL," +
-			    "dimension_id VARCHAR(255)" +
-			    ");";
-		return null;
+	public void create() throws Exception {
+		logger.info("Entering create method of client repository");
+		this.createTable(Client.class, this.databaseClient);
 	}
 
 }

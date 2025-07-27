@@ -33,19 +33,24 @@ public class UIExtensionController {
 		
 		uiService.execute();
 		
-		Flux<DimensionEntity> dimensions = repo.findAll();
+		return new ResponseFactory()
+                .data(List.of(1))
+                .status(HttpStatus.OK)
+                .build();
 		
-		Mono<List<DimensionEntity>> dimensionsListMono = dimensions.collectList();
-
-	    
-	    return dimensionsListMono.flatMap(dimensionList -> {
-	        
-	        dimensionList.forEach(item -> System.out.println(item.toString()));
-
-	        return new ResponseFactory()
-	                .data(List.of(dimensionList))
-	                .status(HttpStatus.OK)
-	                .build();
-	    });
+//		Flux<DimensionEntity> dimensions = repo.findAll();
+//		
+//		Mono<List<DimensionEntity>> dimensionsListMono = dimensions.collectList();
+//
+//	    
+//	    return dimensionsListMono.flatMap(dimensionList -> {
+//	        
+//	        dimensionList.forEach(item -> System.out.println(item.toString()));
+//
+//	        return new ResponseFactory()
+//	                .data(List.of(dimensionList))
+//	                .status(HttpStatus.OK)
+//	                .build();
+//	    });
 	}
 }

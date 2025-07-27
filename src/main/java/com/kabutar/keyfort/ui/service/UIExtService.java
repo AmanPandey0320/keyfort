@@ -22,11 +22,6 @@ public class UIExtService {
 	
 	public Mono<Void> execute(){
 		
-		Flux<DimensionEntity> dimensions = repo.findAll();
-		
-		dimensions.subscribe(item -> {
-			System.out.println(item.toString());
-		});
 		
 		return Mono.empty();
 	}

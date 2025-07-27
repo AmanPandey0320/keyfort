@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.r2dbc.core.DatabaseClient;
 
 import com.kabutar.keyfort.data.annotation.Column;
 import com.kabutar.keyfort.data.annotation.Entity;
@@ -44,7 +45,7 @@ public abstract class BaseRepository {
      * operation is done.
      * @throws Exception If an error occurs during the creation process.
      */
-    public abstract Mono<Void> create() throws Exception;
+    public abstract void create() throws Exception;
 
     /**
      * Generates a SQL CREATE TABLE statement for a given entity class.
@@ -97,4 +98,45 @@ public abstract class BaseRepository {
         sb.append(");");
         return sb.toString();
     }
+    
+    /**
+     * Creates a database table based on the provided class definition.
+     *
+     * This method constructs a SQL CREATE TABLE statement from the given class
+     * (presumably by inspecting its annotations or structure to derive table name
+     * and column definitions) and executes it using the provided `DatabaseClient`.
+     * It logs the SQL statement, the success or failure of the table creation,
+     * and handles any errors during the process.
+     *
+     * @param clazz The {@link Class} object representing the entity for which the
+     * database table needs to be created. This class is used to derive
+     * the table's schema.
+     * @param dbClient The {@link DatabaseClient} instance used to interact with the
+     * database and execute the generated SQL statement.
+     * @return A {@link reactor.core.publisher.Mono Mono<Void>} that completes
+     * successfully if the table is created, or emits an error if the
+     * creation fails. The `Mono<Void>` signifies that no data is
+     * returned upon successful completion, only the completion signal.
+     * @throws Exception If an error occurs during the generation of the CREATE TABLE
+     * SQL statement from the provided class. Note that database
+     * execution errors are handled within the Mono's error
+     * handling chain.
+     */
+    public void createTable(Class<?> clazz, DatabaseClient dbClient) throws Exception {
+    	String CREATE_TABLE_SQL = this.getCreateSQL(clazz);
+
+        logger.info("Attempting to create table with SQL: {} for class: {}", CREATE_TABLE_SQL,clazz.getName());
+
+        dbClient.sql(CREATE_TABLE_SQL).fetch().rowsUpdated().doOnSuccess(rows -> {
+            
+            logger.info("Created table {} (rowsUpdated: {})",clazz.getName(), rows);
+        })
+        .doOnError(e -> {
+            
+            logger.error("Error creating table {}, reason: {}", clazz.getName(), e.getMessage());
+            logger.debug("Full exception: ", e); // Log full stack trace for debug
+             throw new RuntimeException("Failed to create dimensions table", e);
+        })
+        .then().block();
+    };
 }
