@@ -1,51 +1,46 @@
 package com.kabutar.keyfort.data.entity;
 
-import jakarta.persistence.*;
+import com.kabutar.keyfort.data.annotation.Column;
+import com.kabutar.keyfort.data.annotation.Entity;
+
+import io.r2dbc.spi.Row;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
-import java.util.List;
 
-@Entity
 @Getter
 @Setter
 @ToString
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+@Entity("users")
+public class User extends BaseEntity {
+	
+	@Column(name = "id",define = "UUID DEFAULT gen_random_uuid() PRIMARY KEY")
     private String id;
 
-    @Column(nullable = false, unique = true)
+	@Column(name = "username",define = "VARCHAR(255) NOT NULL UNIQUE")
     private String username;
 
-    @Column(nullable = true)
+	@Column(name = "email",define = "VARCHAR(255) NOT NULL UNIQUE")
     private String email;
 
-    @Column(nullable = true)
+	@Column(name = "first_name",define = "VARCHAR(255) NOT NULL")
     private String firstName;
 
-    @Column(nullable = true)
+	@Column(name = "last_name",define = "VARCHAR(255) NOT NULL")
     private String lastName;
+	
+	@Column(name = "middle_name",define = "VARCHAR(255)")
+	private String middleName;
 
-    @Column(nullable = false)
+	@Column(name = "is_verified",define = "BOOLEAN NOT NULL DEFAULT FALSE")
     private boolean isVerified = false;
+	
+	public User(Row row){
+    	this.digest(row, getClass(), this);
+    }
+	
+	@Column(name = "client_id", define = "UUID NOT NULL", reference = "clients (id)")
+	private String clientId;
 
-//    @ManyToOne
-//    @JoinColumn(name = "clientId", nullable = false)
-//    private Client client;
-
-    @OneToMany
-    @ToString.Exclude
-    private List<Credential> credentials;
-
-    @OneToMany(fetch = FetchType.LAZY)
-    @ToString.Exclude
-    private List<Token> tokens;
-    
-    @OneToMany(fetch = FetchType.LAZY)
-    @ToString.Exclude
-    private List<Session> sessions;
-    
 }

@@ -5,7 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Repository;
 
-import com.kabutar.keyfort.data.entity.DimensionEntity;
+import com.kabutar.keyfort.data.entity.Dimension;
 
 @Repository
 public class DimensionRepo extends BaseRepository {
@@ -21,7 +21,7 @@ public class DimensionRepo extends BaseRepository {
 	@Override
 	public void create() throws Exception {
 		logger.info("Entering create method of dimension repository");
-        this.createTable(DimensionEntity.class, dbClient);
+        this.createTable(Dimension.class, dbClient);
 	}
     
     

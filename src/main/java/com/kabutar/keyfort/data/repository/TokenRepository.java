@@ -5,11 +5,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import com.kabutar.keyfort.data.entity.Credential;
+import com.kabutar.keyfort.data.entity.DepCredential;
 import com.kabutar.keyfort.data.entity.Token;
 
 @Repository
-public interface TokenRepository extends JpaRepository<Credential,String> {
+public interface TokenRepository extends JpaRepository<DepCredential,String> {
     public Token save (Token token);
 
     @Query(

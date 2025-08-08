@@ -47,4 +47,12 @@ public @interface Column {
      * @return The SQL definition string for the column.
      */
     String define();
+    
+    /**
+     * Specifies a reference to a table for the property.
+     * This element is optional. If no value is provided, an empty string will be used as the default.
+     *
+     * @return The reference table details as string. Defaults to an empty string if not specified.
+     */
+    String reference() default "";
 }

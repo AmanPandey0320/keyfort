@@ -5,7 +5,7 @@ import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
-public class Credential {
+public class DepCredential {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -25,7 +25,7 @@ public class Credential {
 
     @ManyToOne
     @JoinColumn(name = "userId", nullable = false)
-    private User User;
+    private DepUser User;
 
     public String getId() {
         return id;
@@ -67,11 +67,11 @@ public class Credential {
         this.createdAt = createdAt;
     }
 
-    public com.kabutar.keyfort.data.entity.User getUser() {
+    public com.kabutar.keyfort.data.entity.DepUser getUser() {
         return User;
     }
 
-    public void setUser(com.kabutar.keyfort.data.entity.User user) {
+    public void setUser(com.kabutar.keyfort.data.entity.DepUser user) {
         User = user;
     }
 }

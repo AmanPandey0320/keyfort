@@ -5,7 +5,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.kabutar.keyfort.data.entity.DimensionEntity;
+import com.kabutar.keyfort.data.entity.Dimension;
 import com.kabutar.keyfort.data.repository.DimensionRepo;
 import com.kabutar.keyfort.security.service.AuthService;
 

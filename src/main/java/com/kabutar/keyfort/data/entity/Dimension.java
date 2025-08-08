@@ -12,9 +12,9 @@ import lombok.ToString;
 @Setter
 @ToString
 @Entity("dimensions")
-public class DimensionEntity extends BaseEntity {
+public class Dimension extends BaseEntity {
 	
-	@Column(name = "id",define = "VARCHAR(256) PRIMARY KEY")
+	@Column(name = "id",define = "UUID DEFAULT gen_random_uuid() PRIMARY KEY")
     private String id;
 	
 	@Column(name = "name", define = "VARCHAR(256) NOT NULL UNIQUE")
@@ -26,7 +26,7 @@ public class DimensionEntity extends BaseEntity {
     @Column(name = "is_active", define = "BOOLEAN NOT NULL DEFAULT TRUE")
     private boolean isActive;
     
-    public DimensionEntity(Row row){
+    public Dimension(Row row){
     	this.digest(row, getClass(), this);
     }
     

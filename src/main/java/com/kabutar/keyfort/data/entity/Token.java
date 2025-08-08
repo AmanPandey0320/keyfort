@@ -29,7 +29,7 @@ public class Token {
 
     @ManyToOne
     @JoinColumn(name = "userId", nullable = false)
-    private User user;
+    private DepUser user;
 
     public String getId() {
         return id;
@@ -71,11 +71,11 @@ public class Token {
         this.validTill = validTill;
     }
 
-    public User getUser() {
+    public DepUser getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(DepUser user) {
         this.user = user;
     }
 

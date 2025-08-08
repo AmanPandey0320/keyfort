@@ -90,6 +90,12 @@ public abstract class BaseRepository {
                         isFirst = false;
                     }
                     sb.append(column.name()).append(" ").append(column.define());
+                    
+                    if(column.reference().length() > 0) {
+                    	sb.append(",");
+                    	sb.append("FOREIGN KEY (")
+                    		.append(column.name()).append(") REFERENCES ").append(column.reference());
+                    }
                 }
             }
             clazz = clazz.getSuperclass();
@@ -135,7 +141,7 @@ public abstract class BaseRepository {
             
             logger.error("Error creating table {}, reason: {}", clazz.getName(), e.getMessage());
             logger.debug("Full exception: ", e); // Log full stack trace for debug
-             throw new RuntimeException("Failed to create dimensions table", e);
+             throw new RuntimeException("Failed to create table", e);
         })
         .then().block();
     };

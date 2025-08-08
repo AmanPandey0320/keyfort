@@ -22,7 +22,7 @@ public class Session {
 	
 	@ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "userId", nullable = true)
-	private User user;
+	private DepUser user;
 	
 	@Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
 	private boolean isAuthenticated;
@@ -43,11 +43,11 @@ public class Session {
 		this.id = id;
 	}
 	
-	public User getUser() {
+	public DepUser getUser() {
 		return user;
 	}
 
-	public void setUser(User user) {
+	public void setUser(DepUser user) {
 		this.user = user;
 	}
 

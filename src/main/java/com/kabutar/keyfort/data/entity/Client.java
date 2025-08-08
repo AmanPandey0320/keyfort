@@ -14,7 +14,7 @@ import lombok.ToString;
 @Entity("clients")
 public class Client extends BaseEntity {
 	
-	@Column(name = "id",define = "VARCHAR(256) PRIMARY KEY")
+	@Column(name = "id",define = "UUID DEFAULT gen_random_uuid() PRIMARY KEY")
 	private String id;
 	
 	@Column(name = "secret", define = "VARCHAR(512) NOT NULL")
@@ -29,7 +29,7 @@ public class Client extends BaseEntity {
 	@Column(name = "name", define = "VARCHAR(64)")
 	private String name;
 	
-	@Column(name = "dimension_id", define = "VARCHAR(256) NOT NULL")
+	@Column(name = "dimension_id", define = "UUID NOT NULL", reference = "dimensions (id)")
 	private String dimensionId;
 
 	public Client(Row row){

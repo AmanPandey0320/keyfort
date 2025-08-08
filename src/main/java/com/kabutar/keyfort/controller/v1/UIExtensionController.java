@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kabutar.keyfort.data.entity.DimensionEntity;
+import com.kabutar.keyfort.data.entity.Dimension;
 import com.kabutar.keyfort.data.repository.DimensionRepo;
 import com.kabutar.keyfort.http.ResponseFactory;
 import com.kabutar.keyfort.ui.service.UIExtService;

@@ -36,12 +36,14 @@ dependencies {
 	
 	// data access dependencies
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.postgresql:postgresql'
     implementation 'mysql:mysql-connector-java:8.0.33'
     implementation 'com.zaxxer:HikariCP'
     
+    //r2dbc dependencies
     implementation 'org.springframework.boot:spring-boot-starter-data-r2dbc'
     implementation 'org.hibernate.reactive:hibernate-reactive-core:3.0.1.Final'
-    implementation 'io.asyncer:r2dbc-mysql:1.4.1'
+    implementation 'org.postgresql:r2dbc-postgresql:1.0.7.RELEASE'
     
     //logging depedencies
     implementation 'org.apache.logging.log4j:log4j-core:2.24.3'

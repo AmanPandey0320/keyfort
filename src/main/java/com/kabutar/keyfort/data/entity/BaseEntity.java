@@ -34,7 +34,7 @@ public abstract class BaseEntity {
     @Column(name = "created_at", define = "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP")
     protected LocalDateTime createdAt;
 
-    @Column(name = "updated_at", define = "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP")
+    @Column(name = "updated_at", define = "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP")
     protected LocalDateTime updatedAt;
 
     @Column(name = "created_by", define = "VARCHAR(255)")
@@ -48,6 +48,7 @@ public abstract class BaseEntity {
     
     @Column(name = "is_deleted", define = "BOOLEAN NOT NULL DEFAULT FALSE")
     protected boolean isDeleted;
+    
     /**
      * Populates the fields of a {@link BaseEntity} object from a database row.
      * <p>

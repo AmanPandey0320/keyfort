@@ -11,10 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.constant.DataConstant;
-import com.kabutar.keyfort.data.entity.Credential;
+import com.kabutar.keyfort.data.entity.DepCredential;
 //import com.kabutar.keyfort.data.entity.Dimension;
-import com.kabutar.keyfort.data.entity.DimensionEntity;
-import com.kabutar.keyfort.data.entity.User;
+import com.kabutar.keyfort.data.entity.Dimension;
+import com.kabutar.keyfort.data.entity.DepUser;
 //import com.kabutar.keyfort.data.entity.client.Client;
 import com.kabutar.keyfort.data.repository.ClientRepository;
 import com.kabutar.keyfort.data.repository.CredentialRepository;
@@ -83,7 +83,7 @@ public class AdminLoaderDep implements DefaultLoader {
 //
 //	
 //	
-	private Mono<DimensionEntity> checkAndCreateDimension() {
+	private Mono<Dimension> checkAndCreateDimension() {
 		return null;
 		
 		
