@@ -42,7 +42,7 @@ public class DepUser {
 
     @OneToMany(fetch = FetchType.LAZY)
     @ToString.Exclude
-    private List<Token> tokens;
+    private List<DepToken> tokens;
     
     @OneToMany(fetch = FetchType.LAZY)
     @ToString.Exclude

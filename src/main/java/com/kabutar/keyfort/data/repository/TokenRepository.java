@@ -6,16 +6,16 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.kabutar.keyfort.data.entity.DepCredential;
-import com.kabutar.keyfort.data.entity.Token;
+import com.kabutar.keyfort.data.entity.DepToken;
 
 @Repository
 public interface TokenRepository extends JpaRepository<DepCredential,String> {
-    public Token save (Token token);
+    public DepToken save (DepToken token);
 
     @Query(
             value = "SELECT * FROM token as t WHERE t.token = :token",
             nativeQuery = true
     )
-    public Token findByToken(@Param("token") String token);
+    public DepToken findByToken(@Param("token") String token);
 
 }

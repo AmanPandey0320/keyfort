@@ -1,102 +1,49 @@
 package com.kabutar.keyfort.data.entity;
 
+import java.time.LocalDateTime;
+
 import com.kabutar.keyfort.constant.AuthConstant;
-import jakarta.persistence.*;
+import com.kabutar.keyfort.data.annotation.Column;
+import com.kabutar.keyfort.data.annotation.Entity;
+import com.kabutar.keyfort.data.annotation.Id;
 
-import java.sql.Timestamp;
-import java.util.Date;
+import io.r2dbc.spi.Row;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
-@Entity
-public class Token {
+@Getter
+@Setter
+@ToString
+@Entity("tokens")
+public class Token extends BaseEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+	@Id
     private String id;
 
+	@Column(name = "token", define = "TEXT")
     private String token;
 
-    @Column(nullable = false)
-    private String type = AuthConstant.TokenType.AUTHORIZATION;
+	@Column(name = "type", define = "VARCHAR(64)")
+    private String type;
+    
 
-    @Temporal(TemporalType.TIMESTAMP)
-    @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Timestamp createdAt;
+	@Column(name = "valid_till", define = "TIMESTAMP NOT NULL")
+    private LocalDateTime validTill;
 
-    private Timestamp validTill;
+	@Column(name = "is_valid", define = "BOOLEAN NOT NULL DEFAULT TRUE")
+    private boolean isValid;
 
-    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
-    private boolean isValid = true;
+    @Column(name = "user_id", define = "UUID NOT NULL", reference = "users (id)")
+    private String userId;
 
-    @ManyToOne
-    @JoinColumn(name = "userId", nullable = false)
-    private DepUser user;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public Date getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(Timestamp createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public Timestamp getValidTill() {
-        return validTill;
-    }
-
-    public void setValidTill(Timestamp validTill) {
-        this.validTill = validTill;
-    }
-
-    public DepUser getUser() {
-        return user;
-    }
-
-    public void setUser(DepUser user) {
-        this.user = user;
-    }
-
-    public boolean isValid() {
-        return isValid;
-    }
-
-    public void setValid(boolean valid) {
-        isValid = valid;
-    }
-
-    @Override
-    public String toString() {
-        return "Token{" +
-                "id='" + id + '\'' +
-                ", token='" + token + '\'' +
-                ", type='" + type + '\'' +
-                ", createdAt=" + createdAt +
-                ", validTill=" + validTill +
-                ", isValid=" + isValid +
-                ", user=" + user +
-                '}';
-    }
+	public Token() {
+		this.type = AuthConstant.TokenType.AUTHORIZATION;
+	}
+	
+	public Token(Row row) {
+		this.digest(row, getClass(), this);
+	}
+    
+    
 }
