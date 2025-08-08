@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import com.kabutar.keyfort.data.repository.ClientRepo;
 import com.kabutar.keyfort.data.repository.CredentialRepo;
 import com.kabutar.keyfort.data.repository.DimensionRepo;
+import com.kabutar.keyfort.data.repository.SessionRepo;
 import com.kabutar.keyfort.data.repository.UserRepo;
 
 import jakarta.annotation.PostConstruct;
@@ -26,11 +27,15 @@ public class TableLoader implements DefaultLoader {
 	@Autowired
 	private UserRepo userRepo;
 	
+	@Autowired
+	private SessionRepo sessionRepo;
+	
 	private void createTables() throws Exception{
 		this.dimensionRepo.create();
 		this.clientRepo.create();
 		this.userRepo.create();
 		this.credentialRepo.create();
+		this.sessionRepo.create();
 		
 	}
 

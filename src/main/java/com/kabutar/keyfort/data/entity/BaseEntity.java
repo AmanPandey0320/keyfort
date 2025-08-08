@@ -7,6 +7,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.kabutar.keyfort.data.annotation.Column;
+import com.kabutar.keyfort.data.annotation.Id;
 import com.kabutar.keyfort.security.service.AuthService;
 
 import io.r2dbc.spi.Row;
@@ -88,6 +89,16 @@ public abstract class BaseEntity {
 					}
 					field.setAccessible(false);
 					
+				}else if(field.isAnnotationPresent(Id.class)) {
+					Id column = field.getAnnotation(Id.class);
+					field.setAccessible(true);
+					try {
+						field.set(object, row.get(column.name(),field.getType()));
+					} catch (IllegalArgumentException | IllegalAccessException e) {
+						logger.error("Error while digesting: {} for class {}",field.getName(),clazz.getName());
+						logger.debug(e);
+					}
+					field.setAccessible(false);
 				}
 			}
 			clazz = clazz.getSuperclass();

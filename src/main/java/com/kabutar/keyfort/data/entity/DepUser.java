@@ -46,6 +46,6 @@ public class DepUser {
     
     @OneToMany(fetch = FetchType.LAZY)
     @ToString.Exclude
-    private List<Session> sessions;
+    private List<DepSession> sessions;
     
 }

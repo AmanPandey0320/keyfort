@@ -8,6 +8,7 @@ import org.springframework.r2dbc.core.DatabaseClient;
 
 import com.kabutar.keyfort.data.annotation.Column;
 import com.kabutar.keyfort.data.annotation.Entity;
+import com.kabutar.keyfort.data.annotation.Id;
 
 import reactor.core.publisher.Mono;
 
@@ -96,6 +97,14 @@ public abstract class BaseRepository {
                     	sb.append("FOREIGN KEY (")
                     		.append(column.name()).append(") REFERENCES ").append(column.reference());
                     }
+                }else if(field.isAnnotationPresent(Id.class)) {
+                	Id column = field.getAnnotation(Id.class);
+                    if(!isFirst) {
+                        sb.append((","));
+                    }else {
+                        isFirst = false;
+                    }
+                    sb.append(column.name()).append(" ").append(column.define());
                 }
             }
             clazz = clazz.getSuperclass();

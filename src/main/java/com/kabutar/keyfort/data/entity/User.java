@@ -2,6 +2,7 @@ package com.kabutar.keyfort.data.entity;
 
 import com.kabutar.keyfort.data.annotation.Column;
 import com.kabutar.keyfort.data.annotation.Entity;
+import com.kabutar.keyfort.data.annotation.Id;
 
 import io.r2dbc.spi.Row;
 import lombok.Getter;
@@ -15,7 +16,7 @@ import lombok.ToString;
 @Entity("users")
 public class User extends BaseEntity {
 	
-	@Column(name = "id",define = "UUID DEFAULT gen_random_uuid() PRIMARY KEY")
+	@Id
     private String id;
 
 	@Column(name = "username",define = "VARCHAR(255) NOT NULL UNIQUE")

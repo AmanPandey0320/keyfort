@@ -6,11 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.kabutar.keyfort.data.entity.Session;
+import com.kabutar.keyfort.data.entity.DepSession;
 
-public interface SessionRepository extends JpaRepository<Session,String> {
+public interface SessionRepository extends JpaRepository<DepSession,String> {
 	@Query(value = "SELECT * FROM session as s WHERE s.id = :id",
             nativeQuery = true)
-	public Optional<Session> findById(@Param("id") String id);
+	public Optional<DepSession> findById(@Param("id") String id);
 	
 }

@@ -1,79 +1,30 @@
 package com.kabutar.keyfort.data.entity;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
+import com.kabutar.keyfort.data.annotation.Column;
+import com.kabutar.keyfort.data.annotation.Entity;
+import com.kabutar.keyfort.data.annotation.Id;
 
-@Entity
-public class Session {
-	
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@ToString
+@Entity("sessions")
+public class Session extends BaseEntity {
+
 	@Id
-	@GeneratedValue(strategy = GenerationType.UUID)
 	private String id;
 	
-	@ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "userId", nullable = true)
-	private DepUser user;
-	
-	@Column(columnDefinition = "BOOLEAN DEFAULT FALSE")
+	@Column(name = "is_Authenticated",define = "BOOLEAN NOT NULL DEFAULT FALSE")
 	private boolean isAuthenticated;
 	
-	@Temporal(TemporalType.TIMESTAMP)
-    @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Date createdAt;
+	@Column(name = "last_used", define = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+	private LocalDateTime lastUsed;
 	
-	@Temporal(TemporalType.TIMESTAMP)
-    @Column(columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-	private Date lastUsed;
-
-	public String getId() {
-		return id;
-	}
-
-	public void setId(String id) {
-		this.id = id;
-	}
-	
-	public DepUser getUser() {
-		return user;
-	}
-
-	public void setUser(DepUser user) {
-		this.user = user;
-	}
-
-	public boolean isAuthenticated() {
-		return isAuthenticated;
-	}
-
-	public void setAuthenticated(boolean isAuthenticated) {
-		this.isAuthenticated = isAuthenticated;
-	}
-
-	public Date getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
-	}
-
-	public Date getLastUsed() {
-		return lastUsed;
-	}
-
-	public void setLastUsed(Date lastUsed) {
-		this.lastUsed = lastUsed;
-	}
-	
-	
+	@Column(name = "user_id", define = "UUID NOT NULL", reference = "users (id)")
+	private String userId;
 }
