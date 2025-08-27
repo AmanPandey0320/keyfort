@@ -10,7 +10,7 @@ import com.kabutar.keyfort.data.entity.Credentials;
 import reactor.core.publisher.Mono;
 
 @Repository
-public class CredentialRepo extends BaseRepository {
+public class CredentialRepo extends BaseRepository<String,Credentials> {
 	private final Logger logger = LogManager.getLogger(CredentialRepo.class);
 	private final DatabaseClient databaseClient;
 	
@@ -27,7 +27,7 @@ public class CredentialRepo extends BaseRepository {
 	}
 
 	@Override
-	public Mono<String> save() throws Exception {
+	public Mono<String> save(Credentials c) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}

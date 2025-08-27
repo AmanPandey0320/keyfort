@@ -10,7 +10,7 @@ import com.kabutar.keyfort.data.entity.Token;
 import reactor.core.publisher.Mono;
 
 @Repository
-public class TokenRepo extends BaseRepository {
+public class TokenRepo extends BaseRepository<String,Token> {
 	private final Logger logger = LogManager.getLogger(TokenRepo.class);
 	private final DatabaseClient databaseClient;
 	
@@ -27,7 +27,7 @@ public class TokenRepo extends BaseRepository {
 	}
 
 	@Override
-	public Mono<String> save() throws Exception {
+	public Mono<String> save(Token t) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}

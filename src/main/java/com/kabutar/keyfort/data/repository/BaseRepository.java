@@ -3,6 +3,7 @@ package com.kabutar.keyfort.data.repository;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -12,7 +13,6 @@ import com.kabutar.keyfort.data.annotation.Column;
 import com.kabutar.keyfort.data.annotation.Entity;
 import com.kabutar.keyfort.data.annotation.Id;
 import com.kabutar.keyfort.data.sql.SqlQueryWithFields;
-import com.mysql.cj.result.Row;
 
 import reactor.core.publisher.Mono;
 
@@ -74,7 +74,7 @@ public abstract class BaseRepository<T,C> {
      * @return T (id)
      * @throws Exception If an error occurs during the insertion process.
      */
-    public abstract Mono<T> save() throws Exception;
+    public abstract Mono<T> save(C c) throws Exception;
 
     /**
      * Generates a SQL CREATE TABLE statement for a given entity class.
@@ -192,7 +192,7 @@ public abstract class BaseRepository<T,C> {
      */
     @SuppressWarnings("unchecked")
 	protected Mono<T> insertIntoTable(C object) throws Exception {
-    	SqlQueryWithFields sql = this.getInsertSQL(object);
+    	SqlQueryWithFields sql = this.getInsertSQL();
     	DatabaseClient.GenericExecuteSpec spec = this.dbClient.sql(sql.getSql());
     	System.out.println(sql.getSql());
     	System.out.println(sql.getFields().size());
@@ -208,13 +208,57 @@ public abstract class BaseRepository<T,C> {
             }
             
         }
-        
-
+     
         // Fetch auto-generated primary key
         return spec.fetch()
                 .first()
-                .map(row -> (T) row.get("id"));
+                .map(row -> (T) row.get("id").toString());
         
+    }
+    
+    /**
+     * 
+     * @param object
+     * @return
+     * @throws Exception
+     */
+    
+    @SuppressWarnings("unchecked")
+    protected Mono<String> updateTable(C object) throws Exception {
+        SqlQueryWithFields sql = this.getUpdateSQL();
+        DatabaseClient.GenericExecuteSpec spec = this.dbClient.sql(sql.getSql());
+        System.out.println(sql.getSql());
+        System.out.println(sql.getFields().size());
+
+        // Reflection-driven binding
+        for (int i = 0; i < sql.getFields().size(); i++) {
+            Field f = sql.getFields().get(i);
+            f.setAccessible(true);
+            Object value = f.get(object);
+            logger.info("Binding field: {} to value {}", f.getName(), value);
+
+            if (f.isAnnotationPresent(Id.class)) {
+                // Special handling for UUIDs
+                if (value instanceof String) {
+                    // Convert the String value to a UUID object
+                    UUID uuid = UUID.fromString((String) value);
+                    spec = spec.bind(f.getName(), uuid);
+                } else {
+                    // Handle cases where the ID is already a UUID object
+                    spec = spec.bind(f.getName(), value);
+                }
+            } else if (value == null) {
+                // Handle null values for other fields
+                spec = spec.bindNull(f.getName(), f.getType());
+            } else {
+                // Bind non-null values for other fields
+                spec = spec.bind(f.getName(), value);
+            }
+        }
+
+        return spec.fetch()
+            .rowsUpdated()
+            .map(rowsUpdated -> String.valueOf(rowsUpdated));
     }
     
     /**
@@ -235,9 +279,9 @@ public abstract class BaseRepository<T,C> {
      * @return SQL insert statement with placeholders "?" and "RETURNING id"
      * @throws Exception if the class is not annotated with {@link Entity}
      */
-    protected SqlQueryWithFields getInsertSQL(Object entity) throws Exception {
+    protected SqlQueryWithFields getInsertSQL() throws Exception {
     	logger.debug("Entering getInsertSQL function");
-        Class<?> clazz = entity.getClass();
+        Class<?> clazz = this.entityClass;
 
         if (!clazz.isAnnotationPresent(Entity.class)) {
         	logger.debug("The class: {} is not an entity",clazz.getName());
@@ -294,5 +338,89 @@ public abstract class BaseRepository<T,C> {
         
         return new SqlQueryWithFields(insertFields,sql);
     }
+    
+    /**
+     * Generates an SQL UPDATE statement with named parameters based on entity fields.
+     * Updates all fields annotated with @Column, excludes @Id fields from update set.
+     * Uses the @Id field as the WHERE condition for the update.
+     *
+     * Example output for Dimension entity:
+     * UPDATE dimensions 
+     * SET name = :name, display_name = :displayName, is_active = :isActive
+     * WHERE id = :id;
+     *
+     * @param entity The entity instance to analyze via reflection.
+     * @return SqlQueryWithFields containing ordered fields (excluding @Id first, then @Id for where)
+     *         and the update SQL string with named parameters.
+     * @throws Exception if entity class is not annotated with @Entity or has no @Id field.
+     */
+    protected SqlQueryWithFields getUpdateSQL() throws Exception {
+        logger.debug("Entering getUpdateSQL function");
+        Class<?> clazz = this.entityClass;
+
+        if (!clazz.isAnnotationPresent(Entity.class)) {
+            logger.debug("The class: {} is not an entity", clazz.getName());
+            throw new Exception("The class " + clazz.getName() + " is not an entity");
+        }
+
+        String tableName = clazz.getAnnotation(Entity.class).value();
+
+        StringBuilder setClause = new StringBuilder();
+        Field idField = null;
+        String idColumnName = null;
+
+        List<Field> updateFields = new ArrayList<>();
+        
+        boolean isFirst = true;
+
+        // Collect fields, separated into update fields and id field
+        while (clazz != null) {
+            logger.debug("Destructuring fields of entity class: {}", clazz.getName());
+            Field[] fields = clazz.getDeclaredFields();
+
+            for (Field field : fields) {
+                boolean isId = field.isAnnotationPresent(Id.class);
+                boolean isColumn = field.isAnnotationPresent(Column.class);
+
+                if (isId) {
+                    if (idField != null) {
+                        throw new Exception("Multiple @Id fields are not supported");
+                    }
+                    idField = field;
+                    idColumnName = field.getAnnotation(Id.class).name();
+                    continue;
+                }
+
+                if (isColumn) {
+                    String columnName = field.getAnnotation(Column.class).name();
+
+                    if (!isFirst) {
+                        setClause.append(", ");
+                    } else {
+                        isFirst = false;
+                    }
+
+                    setClause.append(columnName).append(" = :").append(field.getName());
+                    updateFields.add(field);
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
+
+        if (idField == null) {
+            throw new Exception("No @Id field found in class " + clazz.getName());
+        }
+
+        // Append id field last for binding clarity
+        updateFields.add(idField);
+
+        String sql = "UPDATE " + tableName + " SET " + setClause + " WHERE " + idColumnName + " = :" + idField.getName() + ";";
+
+        logger.debug("Generated UPDATE SQL: {}", sql);
+        logger.debug("Exiting getUpdateSQL function");
+
+        return new SqlQueryWithFields(updateFields, sql);
+    }
+
     
 }

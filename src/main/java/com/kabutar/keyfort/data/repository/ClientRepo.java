@@ -11,7 +11,7 @@ import reactor.core.publisher.Mono;
 
 
 @Repository
-public class ClientRepo extends BaseRepository {
+public class ClientRepo extends BaseRepository<String, Client> {
 	private final Logger logger = LogManager.getLogger(ClientRepo.class);
 	private final DatabaseClient databaseClient;
 	
@@ -27,7 +27,7 @@ public class ClientRepo extends BaseRepository {
 	}
 
 	@Override
-	public Mono<String> save() throws Exception {
+	public Mono<String> save(Client c) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}

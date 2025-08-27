@@ -10,7 +10,7 @@ import com.kabutar.keyfort.data.entity.Session;
 import reactor.core.publisher.Mono;
 
 @Repository
-public class SessionRepo extends BaseRepository {
+public class SessionRepo extends BaseRepository<String,Session> {
 	private final Logger logger = LogManager.getLogger(SessionRepo.class);
 	private final DatabaseClient databaseClient;
 	
@@ -26,7 +26,7 @@ public class SessionRepo extends BaseRepository {
 	}
 
 	@Override
-	public Mono<String> save() throws Exception {
+	public Mono<String> save(Session s) throws Exception {
 		// TODO Auto-generated method stub
 		return null;
 	}

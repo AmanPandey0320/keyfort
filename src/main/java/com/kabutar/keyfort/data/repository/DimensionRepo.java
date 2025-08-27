@@ -32,19 +32,14 @@ public class DimensionRepo extends BaseRepository<String,Dimension> {
 
 
 	@Override
-	public Mono<String> save() throws Exception {
+	public Mono<String> save(Dimension d) throws Exception {
 		// TODO Auto-generated method stub
-		Dimension d = new Dimension();
-        d.setIsActive(true);
-        d.setCreatedAt(LocalDateTime.now());
-        d.setUpdatedAt(LocalDateTime.now());
-        d.setCreatedBy("admin");
-        d.setIsDeleted(false);
-        d.setDeletedAt(null);
-        d.setDisplayName("abc");
-        d.setName("ABC");
-        d.setUpdatedBy("admin");
-        return this.insertIntoTable(d);
+		if(d.getId() == null) {
+			return this.insertIntoTable(d);
+		}
+		
+		return this.updateTable(d);
+        
 	}
     
     
