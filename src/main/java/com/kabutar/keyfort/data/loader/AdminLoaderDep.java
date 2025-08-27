@@ -11,17 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.constant.DataConstant;
-import com.kabutar.keyfort.data.entity.DepCredential;
-//import com.kabutar.keyfort.data.entity.Dimension;
 import com.kabutar.keyfort.data.entity.Dimension;
-import com.kabutar.keyfort.data.entity.DepUser;
-//import com.kabutar.keyfort.data.entity.client.Client;
 import com.kabutar.keyfort.data.repository.ClientRepository;
-import com.kabutar.keyfort.data.repository.CredentialRepository;
 import com.kabutar.keyfort.data.repository.DimensionRepo;
 import com.kabutar.keyfort.data.repository.DimensionRepository;
-import com.kabutar.keyfort.data.repository.SessionRepository;
-import com.kabutar.keyfort.data.repository.TokenRepository;
 import com.kabutar.keyfort.data.repository.UserRepository;
 import com.kabutar.keyfort.util.PasswordEncoderUtil;
 
@@ -34,8 +27,6 @@ public class AdminLoaderDep implements DefaultLoader {
 	
 	private static Logger logger = LogManager.getLogger(AdminLoaderDep.class);
 	
-	@Autowired
-	private DimensionRepo dimensionRepo;
 //	
 //	@Value("${config.dimension.name}")
 //	private String dimensionName;

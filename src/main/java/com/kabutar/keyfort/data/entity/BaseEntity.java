@@ -48,7 +48,7 @@ public abstract class BaseEntity {
     protected LocalDateTime deletedAt;
     
     @Column(name = "is_deleted", define = "BOOLEAN NOT NULL DEFAULT FALSE")
-    protected boolean isDeleted;
+    protected Boolean isDeleted;
     
     /**
      * Populates the fields of a {@link BaseEntity} object from a database row.

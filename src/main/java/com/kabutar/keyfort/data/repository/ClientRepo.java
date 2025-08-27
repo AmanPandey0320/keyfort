@@ -7,6 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import com.kabutar.keyfort.data.entity.Client;
 
+import reactor.core.publisher.Mono;
+
 
 @Repository
 public class ClientRepo extends BaseRepository {
@@ -14,13 +16,20 @@ public class ClientRepo extends BaseRepository {
 	private final DatabaseClient databaseClient;
 	
 	public ClientRepo(DatabaseClient databaseClient) {
+		super(Client.class,databaseClient);
         this.databaseClient = databaseClient;
     }
 
 	@Override
 	public void create() throws Exception {
 		logger.info("Entering create method of client repository");
-		this.createTable(Client.class, this.databaseClient);
+		this.createTable(this.databaseClient);
+	}
+
+	@Override
+	public Mono<String> save() throws Exception {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
