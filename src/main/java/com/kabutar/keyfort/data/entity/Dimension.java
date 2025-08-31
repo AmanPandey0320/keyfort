@@ -1,11 +1,17 @@
 package com.kabutar.keyfort.data.entity;
 
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.util.LinkedCaseInsensitiveMap;
+
 import com.kabutar.keyfort.data.annotation.Column;
 import com.kabutar.keyfort.data.annotation.Entity;
 import com.kabutar.keyfort.data.annotation.Id;
 
 import io.r2dbc.spi.Row;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -13,10 +19,11 @@ import lombok.ToString;
 @Setter
 @ToString
 @Entity("dimensions")
+@NoArgsConstructor
 public class Dimension extends BaseEntity {
 	
 	@Id
-    private String id;
+    private UUID id;
 	
 	@Column(name = "name", define = "VARCHAR(256) NOT NULL UNIQUE")
     private String name;
@@ -31,8 +38,8 @@ public class Dimension extends BaseEntity {
     	this.digest(row, getClass(), this);
     }
 
-	public Dimension() {
-		// TODO Auto-generated constructor stub
+	public Dimension(LinkedCaseInsensitiveMap<Dimension> row) {
+		this.digest(row, getClass(), this);
 	}
     
 }

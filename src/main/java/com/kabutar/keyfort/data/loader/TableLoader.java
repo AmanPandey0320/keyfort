@@ -17,6 +17,7 @@ import com.kabutar.keyfort.data.repository.TokenRepo;
 import com.kabutar.keyfort.data.repository.UserRepo;
 
 import jakarta.annotation.PostConstruct;
+import reactor.core.publisher.Mono;
 
 @Component
 public class TableLoader implements DefaultLoader {
@@ -76,29 +77,40 @@ public class TableLoader implements DefaultLoader {
 		
 	}
 	
-	private void populateData() throws Exception {
-		Dimension d = new Dimension();
-		d.setIsActive(true);
-		d.setCreatedAt(LocalDateTime.now());
-		d.setUpdatedAt(LocalDateTime.now());
-		d.setCreatedBy("SYSTEM");
-		d.setIsDeleted(false);
-		d.setDeletedAt(null);
-		d.setDisplayName(dimensionDisplayName);
-		d.setName(dimensionName);
-		d.setUpdatedBy("SYSTEM");
-		this.dimensionRepo.save(d)
-			.subscribe(id -> logger.info("Inserted dimension id: {}",id));
+	private Mono<Dimension> populateData() {
+		logger.info("Entering populate data");
+	    return this.dimensionRepo.getDimensionByName(dimensionName).doOnNext(d -> {
+	    	logger.info("Dimension present in database, creating one with name: {}, id is: {}",this.dimensionName,d.getId());
+	    })
+	    .switchIfEmpty(Mono.fromRunnable(() -> {
+	    	logger.debug("Dimension not present in database, creating one with name: {}",this.dimensionName);
+            Dimension d = new Dimension();
+            d.setIsActive(true);
+            d.setCreatedAt(LocalDateTime.now());
+            d.setUpdatedAt(LocalDateTime.now());
+            d.setCreatedBy("SYSTEM");
+            d.setIsDeleted(false);
+            d.setDeletedAt(null);
+            d.setDisplayName(dimensionDisplayName);
+            d.setName(dimensionName);
+            d.setUpdatedBy("SYSTEM");
+            try {
+				this.dimensionRepo.save(d).subscribe(id -> logger.info("Created dimension with id: {}",id));
+			} catch (Exception e) {
+				logger.error("Error details while saving dimension while startup: {}",e.getStackTrace());
+			}
+	    }));
 	}
+
+
 
 	@Override
 	@PostConstruct
 	public void loadData() {
 		try {
 			this.createTables();
-			this.populateData();
+			this.populateData().subscribe();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			System.exit(0);
 		}

@@ -2,9 +2,11 @@ package com.kabutar.keyfort.data.entity;
 
 import java.lang.reflect.Field;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.util.LinkedCaseInsensitiveMap;
 
 import com.kabutar.keyfort.data.annotation.Column;
 import com.kabutar.keyfort.data.annotation.Id;
@@ -96,6 +98,40 @@ public abstract class BaseEntity {
 						field.set(object, row.get(column.name(),field.getType()));
 					} catch (IllegalArgumentException | IllegalAccessException e) {
 						logger.error("Error while digesting: {} for class {}",field.getName(),clazz.getName());
+						logger.debug(e);
+					}
+					field.setAccessible(false);
+				}
+			}
+			clazz = clazz.getSuperclass();
+		}
+	}
+	
+	// overloading for Map<String, Object> row
+	protected void digest(LinkedCaseInsensitiveMap<?> row,Class<?> clazz,BaseEntity object) {
+		while(clazz != null) {
+			Field[] fields = clazz.getDeclaredFields();
+			
+			for(Field field:fields) {
+				if(field.isAnnotationPresent(Column.class)) {
+					Column column = field.getAnnotation(Column.class);
+					field.setAccessible(true);
+					try {
+						field.set(object, row.get(column.name()));
+					} catch (IllegalArgumentException | IllegalAccessException e) {
+						logger.error("Error while digesting: {} for class {}, reason: {}",field.getName(),clazz.getName(),e.getMessage());
+						logger.debug(e);
+					}
+					field.setAccessible(false);
+					
+				}else if(field.isAnnotationPresent(Id.class)) {
+					Id column = field.getAnnotation(Id.class);
+	
+					field.setAccessible(true);
+					try {
+						field.set(object, row.get(column.name()));
+					} catch (IllegalArgumentException | IllegalAccessException e) {
+						logger.error("Error while digesting: {} for class {}, reason: {}",field.getName(),clazz.getName(),e.getMessage());
 						logger.debug(e);
 					}
 					field.setAccessible(false);
