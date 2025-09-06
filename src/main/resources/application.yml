@@ -18,6 +18,7 @@ config:
     name: "super"
     displayName: "God-Dimension"
   client:
+    name: "master"
     secret: "0a5f4360-ae03-4f8a-8020-189a934a4e05-9873e4ca-403b-4ee6-99b3-2c6e7b7e380d"
     redirectUri: "http://localhost:8085/**"
   admin:

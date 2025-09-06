@@ -6,17 +6,22 @@ import com.kabutar.keyfort.data.annotation.Id;
 
 import io.r2dbc.spi.Row;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.util.LinkedCaseInsensitiveMap;
+
+import java.util.UUID;
 
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
 @Entity("clients")
 public class Client extends BaseEntity {
 	
 	@Id
-	private String id;
+	private UUID id;
 	
 	@Column(name = "secret", define = "VARCHAR(512) NOT NULL")
 	private String secret;
@@ -31,11 +36,14 @@ public class Client extends BaseEntity {
 	private String name;
 	
 	@Column(name = "dimension_id", define = "UUID NOT NULL", reference = "dimensions (id)")
-	private String dimensionId;
+	private UUID dimensionId;
 
 	public Client(Row row){
     	this.digest(row, getClass(), this);
     }
-	
+
+    public Client(LinkedCaseInsensitiveMap<Dimension> row) {
+        this.digest(row, getClass(), this);
+    }
 
 }

@@ -9,11 +9,12 @@ import com.kabutar.keyfort.data.entity.Dimension;
 
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 @Repository
 public class DimensionRepo extends BaseRepository<String,Dimension> {
 	private final Logger logger = LogManager.getLogger(DimensionRepo.class);
 	private final DatabaseClient dbClient;
-	private final String GET_BY_NAME_SQL = "SELECT * FROM dimensions WHERE name = :name";
 
     public DimensionRepo(DatabaseClient dbClient) {
     	super(Dimension.class,dbClient);
@@ -27,16 +28,20 @@ public class DimensionRepo extends BaseRepository<String,Dimension> {
 	}
 
 	@Override
-	public Mono<String> save(Dimension d) throws Exception {
+	public Mono<Dimension> save(Dimension d) throws Exception {
 		if(d.getId() == null) {
-			return this.insertIntoTable(d);
+			return this.insertIntoTable(d).flatMap(id -> {
+                d.setId(UUID.fromString(id));
+                return Mono.just(d);
+            });
 		}
-		return this.updateTable(d);
+		return this.updateTable(d).flatMap(id -> Mono.just(d));
 	}
 	
 	public Mono<Dimension> getDimensionByName(String name){
 		logger.info("Getting dimension by name {}",name);
-		DatabaseClient.GenericExecuteSpec spec = this.dbClient.sql(GET_BY_NAME_SQL).bind("name", name);
+        String GET_BY_NAME_SQL = "SELECT * FROM dimensions WHERE name = :name";
+        DatabaseClient.GenericExecuteSpec spec = this.dbClient.sql(GET_BY_NAME_SQL).bind("name", name);
 		return this.getOne(spec, Dimension.class);
 	}
 

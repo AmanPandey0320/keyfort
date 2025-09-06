@@ -12,6 +12,7 @@ import com.kabutar.keyfort.data.annotation.Id;
 import com.kabutar.keyfort.data.sql.SqlProcessor;
 import com.kabutar.keyfort.data.sql.SqlQueryWithFields;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 /**
@@ -72,7 +73,7 @@ public abstract class BaseRepository<T,C> {
      * @return T (id)
      * @throws Exception If an error occurs during the insertion process.
      */
-    public abstract Mono<T> save(C c) throws Exception;
+    public abstract Mono<?> save(C c) throws Exception; // TODO: change Mono return type
     
     /**
      * Creates a database table based on the provided class definition.
@@ -214,6 +215,35 @@ public abstract class BaseRepository<T,C> {
         });
     }
 
+    /**
+     * to get multiple rows from select query
+     * @param spec
+     * @param clazz
+     * @return
+     */
+    protected Flux<C> getAll(DatabaseClient.GenericExecuteSpec spec, Class<C> clazz) {
+        return spec.fetch().all()
+                .flatMap(row -> {
+                    try {
+                        Constructor<C> ctor = clazz.getDeclaredConstructor(row.getClass());
+                        return Mono.just(ctor.newInstance(row));
+                    } catch (NoSuchMethodException e) {
+                        return Mono.error(new IllegalStateException("No constructor found in " + clazz.getName() + " that takes a " + row.getClass(), e));
+                    } catch (Exception e) {
+                        return Mono.error(new RuntimeException("Failed to instantiate " + clazz.getName(), e));
+                    }
+                });
+    }
 
-    
+    /**
+     * repo function to delete all
+     * @return
+     * @throws Exception
+     */
+    public Mono<Long> deleteAll() throws Exception {
+        SqlQueryWithFields sqlQueryWithFields = SqlProcessor.getDeleteAllSQL(this.entityClass);
+        DatabaseClient.GenericExecuteSpec spec = this.dbClient.sql(sqlQueryWithFields.getSql());
+        return spec.fetch().rowsUpdated();
+    }
+
 }

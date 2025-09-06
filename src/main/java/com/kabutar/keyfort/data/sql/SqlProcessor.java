@@ -2,6 +2,7 @@ package com.kabutar.keyfort.data.sql;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.logging.log4j.LogManager;
@@ -237,4 +238,30 @@ public class SqlProcessor {
         
         return new SqlQueryWithFields(insertFields,sql);
     }
+
+    /**
+     * function to generate delete all sql query
+     * @param clazz
+     * @return
+     * @throws Exception
+     */
+    public static SqlQueryWithFields getDeleteAllSQL(Class<?> clazz) throws Exception {
+        logger.debug("Entering getDeleteAllSQL function");
+
+        if (!clazz.isAnnotationPresent(Entity.class)) {
+            logger.debug("The class: {} is not an entity", clazz.getName());
+            throw new Exception("The class " + clazz.getName() + " is not an entity");
+        }
+
+        String tableName = clazz.getAnnotation(Entity.class).value();
+
+        String sql = "DELETE FROM " + tableName + ";";
+
+        logger.debug("Generated SQL: {}", sql);
+        logger.debug("Exiting getDeleteAllSQL function");
+
+        // No fields needed for delete all
+        return new SqlQueryWithFields(Collections.emptyList(), sql);
+    }
+
 }
