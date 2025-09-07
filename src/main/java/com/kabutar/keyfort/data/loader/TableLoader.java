@@ -108,13 +108,6 @@ public class TableLoader implements DefaultLoader {
                 return this.clientRepo.deleteAll().flatMap(deletedRows -> {
                     logger.info("{} old clients found",deletedRows);
                     Client c = new Client();
-                    c.setCreatedAt(LocalDateTime.now());
-                    c.setUpdatedAt(LocalDateTime.now());
-                    c.setCreatedBy("SYSTEM");
-                    c.setIsDeleted(false);
-                    c.setDeletedAt(null);
-                    c.setUpdatedBy("SYSTEM");
-
                     c.setName(this.clientName);
                     c.setSecret(this.clientSecret);
                     c.setRedirectUri(this.redirectUri);
@@ -146,14 +139,8 @@ public class TableLoader implements DefaultLoader {
 	    	logger.debug("Dimension not present in database, creating one with name: {}",this.dimensionName);
             Dimension d = new Dimension();
             d.setIsActive(true);
-            d.setCreatedAt(LocalDateTime.now());
-            d.setUpdatedAt(LocalDateTime.now());
-            d.setCreatedBy("SYSTEM");
-            d.setIsDeleted(false);
-            d.setDeletedAt(null);
             d.setDisplayName(dimensionDisplayName);
             d.setName(dimensionName);
-            d.setUpdatedBy("SYSTEM");
             try {
 				return this.dimensionRepo.save(d).doOnNext(savedDimension -> logger.info("Created dimension with id: {}",savedDimension.getId()));
 			} catch (Exception e) {

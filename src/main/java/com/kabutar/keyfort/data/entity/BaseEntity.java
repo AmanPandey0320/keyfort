@@ -29,7 +29,6 @@ import lombok.experimental.SuperBuilder;
  */
 @Getter
 @Setter
-@NoArgsConstructor
 @ToString
 public abstract class BaseEntity {
 	private final Logger logger = LogManager.getLogger(BaseEntity.class);
@@ -51,6 +50,17 @@ public abstract class BaseEntity {
     
     @Column(name = "is_deleted", define = "BOOLEAN NOT NULL DEFAULT FALSE")
     protected Boolean isDeleted;
+
+    public BaseEntity(){
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+
+        this.createdBy = "SYSTEM";
+        this.updatedBy = "SYSTEM";
+
+        this.deletedAt = null;
+        this.isDeleted = false;
+    }
     
     /**
      * Populates the fields of a {@link BaseEntity} object from a database row.
