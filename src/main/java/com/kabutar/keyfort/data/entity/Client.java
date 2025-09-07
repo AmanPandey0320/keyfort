@@ -42,7 +42,7 @@ public class Client extends BaseEntity {
     	this.digest(row, getClass(), this);
     }
 
-    public Client(LinkedCaseInsensitiveMap<Dimension> row) {
+    public Client(LinkedCaseInsensitiveMap<Client> row) {
         this.digest(row, getClass(), this);
     }
 

@@ -2,8 +2,11 @@ package com.kabutar.keyfort.data.repository;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
+import com.kabutar.keyfort.data.sql.SqlConstant;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.r2dbc.core.DatabaseClient;
@@ -38,14 +41,20 @@ public abstract class BaseRepository<T,C> {
     private final Logger logger = LogManager.getLogger(BaseRepository.class);
     private final Class<?> entityClass;
     private final DatabaseClient dbClient;
-    
+    private  Map<String,SqlQueryWithFields> sqlMap;
+
     /**
      * @consuctor
      * @param clazz
      */
-    protected BaseRepository(Class<C> clazz,DatabaseClient dbClient) {
+    protected BaseRepository(Class<C> clazz,DatabaseClient dbClient){
         this.entityClass = clazz;
         this.dbClient = dbClient;
+        try {
+            this.sqlMap = SqlProcessor.getSqlsForClass(clazz);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -99,7 +108,7 @@ public abstract class BaseRepository<T,C> {
      * handling chain.
      */
     protected void createTable(DatabaseClient dbClient) throws Exception {
-    	String CREATE_TABLE_SQL = SqlProcessor.getCreateSQL(this.entityClass);
+    	String CREATE_TABLE_SQL = this.sqlMap.get(SqlConstant.SqlTypes.CREATE_TABLE_SQL).getSql();
 
         logger.info("Attempting to create table with SQL: {} for class: {}", CREATE_TABLE_SQL,entityClass.getName());
 
@@ -124,7 +133,7 @@ public abstract class BaseRepository<T,C> {
      */
     @SuppressWarnings("unchecked")
 	protected Mono<T> insertIntoTable(C object) throws Exception {
-    	SqlQueryWithFields sql = SqlProcessor.getInsertSQL(this.entityClass);
+    	SqlQueryWithFields sql = this.sqlMap.get(SqlConstant.SqlTypes.INSERT_INTO_SQL);
     	DatabaseClient.GenericExecuteSpec spec = this.dbClient.sql(sql.getSql());
     	System.out.println(sql.getSql());
     	System.out.println(sql.getFields().size());
@@ -156,7 +165,7 @@ public abstract class BaseRepository<T,C> {
      */
     
     protected Mono<String> updateTable(C object) throws Exception {
-        SqlQueryWithFields sql = SqlProcessor.getUpdateSQL(this.entityClass);
+        SqlQueryWithFields sql = this.sqlMap.get(SqlConstant.SqlTypes.UPDATE_TABLE_SQL);
         DatabaseClient.GenericExecuteSpec spec = this.dbClient.sql(sql.getSql());
         System.out.println(sql.getSql());
         System.out.println(sql.getFields().size());
@@ -241,8 +250,20 @@ public abstract class BaseRepository<T,C> {
      * @throws Exception
      */
     public Mono<Long> deleteAll() throws Exception {
-        SqlQueryWithFields sqlQueryWithFields = SqlProcessor.getDeleteAllSQL(this.entityClass);
+        SqlQueryWithFields sqlQueryWithFields = this.sqlMap.get(SqlConstant.SqlTypes.DELETE_ALL_SQL);
         DatabaseClient.GenericExecuteSpec spec = this.dbClient.sql(sqlQueryWithFields.getSql());
+        return spec.fetch().rowsUpdated();
+    }
+
+    /**
+     * repo function to delete by id
+     * @param id
+     * @return
+     */
+    public Mono<Long> deleteById(UUID id){
+        SqlQueryWithFields sqlQueryWithFields = this.sqlMap.get(SqlConstant.SqlTypes.DELETE_ONE_BY_ID_SQl);
+        Field field = sqlQueryWithFields.getFields().getFirst();
+        DatabaseClient.GenericExecuteSpec spec = this.dbClient.sql(sqlQueryWithFields.getSql()).bind(field.getName(),id);
         return spec.fetch().rowsUpdated();
     }
 

@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.data.entity.Client;
+import com.kabutar.keyfort.data.entity.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,9 @@ public class TableLoader implements DefaultLoader {
 	
 	@Value("${config.admin.password}")
 	private String password;
+
+    @Value("${config.admin.email}")
+    private String email;
 	
 	@Autowired
 	private DimensionRepo dimensionRepo;
@@ -82,6 +86,65 @@ public class TableLoader implements DefaultLoader {
 		
 	}
 
+    private Mono<User> populateUser(Client c){
+        logger.info("Populating default user");
+        return this.userRepo.getUserByUserName(this.userName).flatMap(user -> {
+            if(user.isVerified() && user.getClientId().equals(c.getId()) && !user.getIsDeleted()){
+                logger.info("User with the user name exist, for the provided client, updating other info");
+                user.setFirstName(this.firstName);
+                user.setLastName(this.lastName);
+
+                try {
+                    logger.info("Updating new user with username: {}",this.userName);
+                    return this.userRepo.save(user);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            logger.info("Delete old user with user name: {}",user.getUsername());
+            return this.userRepo.deleteById(user.getId()).flatMap(count -> {
+                User u = new User();
+                u.setFirstName(this.firstName);
+                u.setLastName(this.lastName);
+                u.setUsername(this.userName);
+                u.setClientId(c.getId());
+                u.setVerified(true);
+                u.setEmail(this.email);
+
+                try {
+                    logger.info("Saving new user with username: {}",this.userName);
+                    return this.userRepo.save(u);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+
+        }).switchIfEmpty(Mono.defer(() -> {
+            logger.info("No User found with username: {}, so creating new",this.userName);
+            User u = new User();
+            u.setFirstName(this.firstName);
+            u.setLastName(this.lastName);
+            u.setUsername(this.userName);
+            u.setClientId(c.getId());
+            u.setVerified(true);
+            u.setEmail(this.email);
+
+            try {
+                logger.info("Saving new user with username: {}, as user don't exist",this.userName);
+                return this.userRepo.save(u);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }));
+    }
+
+    /**
+     * populates default client in database
+     * @param d
+     * @return
+     */
     private Mono<Client> populateClient(Dimension d){
         logger.info("Populating default client...");
         return this.clientRepo.getClientsByDimension(d.getId()).collectList().flatMap(clients -> {
@@ -129,7 +192,11 @@ public class TableLoader implements DefaultLoader {
         });
 
     }
-	
+
+    /**
+     * populates default dimension in database
+     * @return
+     */
 	private Mono<Dimension> populateDimension() {
 		logger.info("Entering populate data");
 	    return this.dimensionRepo.getDimensionByName(dimensionName).doOnNext(d -> {
@@ -157,7 +224,7 @@ public class TableLoader implements DefaultLoader {
 	public void loadData() {
 		try {
 			this.createTables();
-			this.populateDimension().flatMap(this::populateClient).subscribe();
+			this.populateDimension().flatMap(this::populateClient).flatMap(this::populateUser).subscribe();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.exit(0);

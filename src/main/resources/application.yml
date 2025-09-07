@@ -25,6 +25,7 @@ config:
     firstName: "Admin"
     lastName: "User"
     userName: "admin"
+    email: "user@email.com"
     password: "password"
 
 cache:

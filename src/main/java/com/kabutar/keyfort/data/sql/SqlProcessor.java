@@ -1,9 +1,7 @@
 package com.kabutar.keyfort.data.sql;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -29,7 +27,7 @@ public class SqlProcessor {
      *         and the update SQL string with named parameters.
      * @throws Exception if entity class is not annotated with @Entity or has no @Id field.
      */
-    public static SqlQueryWithFields getUpdateSQL(Class<?> clazz) throws Exception {
+    private static SqlQueryWithFields getUpdateSQL(Class<?> clazz) throws Exception {
         logger.debug("Entering getUpdateSQL function");
 
         if (!clazz.isAnnotationPresent(Entity.class)) {
@@ -116,7 +114,7 @@ public class SqlProcessor {
      * @see Entity
      * @see Column
      */
-    public static String getCreateSQL(Class<?> clazz) throws Exception {
+    private static SqlQueryWithFields getCreateSQL(Class<?> clazz) throws Exception {
         if(!clazz.isAnnotationPresent(Entity.class)) {
             throw new Exception("The class " + clazz.getName() + " is not an entity");
         }
@@ -159,7 +157,7 @@ public class SqlProcessor {
         }
 
         sb.append(");");
-        return sb.toString();
+        return new SqlQueryWithFields(Collections.emptyList(), sb.toString());
     }
     
     /**
@@ -180,7 +178,7 @@ public class SqlProcessor {
      * @return SQL insert statement with placeholders "?" and "RETURNING id"
      * @throws Exception if the class is not annotated with {@link Entity}
      */
-    public static SqlQueryWithFields getInsertSQL(Class<?> clazz) throws Exception {
+    private static SqlQueryWithFields getInsertSQL(Class<?> clazz) throws Exception {
     	logger.debug("Entering getInsertSQL function");
 
         if (!clazz.isAnnotationPresent(Entity.class)) {
@@ -245,7 +243,7 @@ public class SqlProcessor {
      * @return
      * @throws Exception
      */
-    public static SqlQueryWithFields getDeleteAllSQL(Class<?> clazz) throws Exception {
+    private static SqlQueryWithFields getDeleteAllSQL(Class<?> clazz) throws Exception {
         logger.debug("Entering getDeleteAllSQL function");
 
         if (!clazz.isAnnotationPresent(Entity.class)) {
@@ -262,6 +260,81 @@ public class SqlProcessor {
 
         // No fields needed for delete all
         return new SqlQueryWithFields(Collections.emptyList(), sql);
+    }
+
+    /**
+     * Generates a SQL DELETE statement for deleting an entity record by its ID.
+     * Inspects the entity class to locate the @Id annotation and to find the table name from @Entity.
+     * The generated SQL uses named parameters for the where clause.
+     *
+     * Example output for Dimension:
+     * DELETE FROM dimensions WHERE id = :id;
+     *
+     * @param clazz The entity class.
+     * @return SqlQueryWithFields with list containing the ID field and the SQL string.
+     * @throws Exception if @Entity/@Id annotation is missing or multiple @Id fields exist.
+     */
+    private static SqlQueryWithFields getDeleteByIdSQL(Class<?> clazz) throws Exception {
+        logger.debug("Entering getDeleteByIdSQL function");
+
+        if (!clazz.isAnnotationPresent(Entity.class)) {
+            logger.debug("The class: {} is not an entity", clazz.getName());
+            throw new Exception("The class " + clazz.getName() + " is not an entity");
+        }
+
+        String tableName = clazz.getAnnotation(Entity.class).value();
+
+        Field idField = null;
+        String idColumnName = null;
+
+        while (clazz != null) {
+            logger.debug("Destructuring fields of entity class: {}", clazz.getName());
+            Field[] fields = clazz.getDeclaredFields();
+
+            for (Field field : fields) {
+                boolean isId = field.isAnnotationPresent(Id.class);
+                if (isId) {
+                    if (idField != null) {
+                        throw new Exception("Multiple @Id fields are not supported");
+                    }
+                    idField = field;
+                    idColumnName = field.getAnnotation(Id.class).name();
+                    break; // Only one @Id field supported
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
+
+        if (idField == null) {
+            throw new Exception("No @Id field found in class " + clazz.getName());
+        }
+
+        String sql = "DELETE FROM " + tableName + " WHERE " + idColumnName + " = :" + idField.getName() + ";";
+        logger.debug("Generated DELETE SQL: {}", sql);
+        logger.debug("Exiting getDeleteByIdSQL function");
+
+        List<Field> fields = new ArrayList<>();
+        fields.add(idField);
+
+        return new SqlQueryWithFields(fields, sql);
+    }
+
+    /**
+     * returns <K,V> pair of SQL
+     * @param clazz
+     * @return
+     * @throws Exception
+     */
+    public static Map<String,SqlQueryWithFields> getSqlsForClass(Class<?> clazz) throws Exception {
+        Map<String,SqlQueryWithFields> sqlMap = new HashMap<>();
+
+        sqlMap.put(SqlConstant.SqlTypes.CREATE_TABLE_SQL,getCreateSQL(clazz));
+        sqlMap.put(SqlConstant.SqlTypes.INSERT_INTO_SQL,getInsertSQL(clazz));
+        sqlMap.put(SqlConstant.SqlTypes.UPDATE_TABLE_SQL,getUpdateSQL(clazz));
+        sqlMap.put(SqlConstant.SqlTypes.DELETE_ALL_SQL,getDeleteAllSQL(clazz));
+        sqlMap.put(SqlConstant.SqlTypes.DELETE_ONE_BY_ID_SQl,getDeleteByIdSQL(clazz));
+
+        return sqlMap;
     }
 
 }

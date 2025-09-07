@@ -1,5 +1,6 @@
 package com.kabutar.keyfort.data.repository;
 
+import com.kabutar.keyfort.data.entity.Client;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.r2dbc.core.DatabaseClient;
@@ -7,7 +8,10 @@ import org.springframework.stereotype.Repository;
 
 import com.kabutar.keyfort.data.entity.User;
 
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+
+import java.util.UUID;
 
 @Repository
 public class UserRepo extends BaseRepository<String,User> {
@@ -27,9 +31,26 @@ public class UserRepo extends BaseRepository<String,User> {
 	}
 
 	@Override
-	public Mono<String> save(User u) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public Mono<User> save(User u) throws Exception {
+		if(u.getId() == null){
+            return  this.insertIntoTable(u).flatMap(id -> {
+                u.setId(UUID.fromString(id));
+                return Mono.just(u);
+            });
+        }
+		return this.updateTable(u).flatMap((i) -> Mono.just(u));
 	}
+
+    public Flux<User> getUsersByClient(Client c){
+        DatabaseClient.GenericExecuteSpec spec = this.databaseClient.sql("SELECT * FROM users WHERE client_id=:cid").bind("cid",c.getId());
+        return this.getAll(spec,User.class);
+    }
+
+    public Mono<User> getUserByUserName(String username){
+        DatabaseClient.GenericExecuteSpec spec = this.databaseClient.sql("SELECT * FROM users WHERE username=:username").bind("username",username);
+        return this.getOne(spec,User.class);
+    }
+
+
 
 }
