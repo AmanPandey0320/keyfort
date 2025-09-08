@@ -1,14 +1,6 @@
 package com.kabutar.keyfort.util.url;
 
-import java.util.ArrayList;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.AntPathMatcher;
-
-import com.kabutar.keyfort.data.repository.ClientRepository;
-
-import jakarta.annotation.PostConstruct;
 
 /**
  * TRIE based url matched for 

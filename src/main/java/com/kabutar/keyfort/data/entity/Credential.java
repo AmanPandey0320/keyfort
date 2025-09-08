@@ -6,17 +6,22 @@ import com.kabutar.keyfort.data.annotation.Id;
 
 import io.r2dbc.spi.Row;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.util.LinkedCaseInsensitiveMap;
+
+import java.util.UUID;
 
 @Getter
 @Setter
 @ToString
+@NoArgsConstructor
 @Entity("credentials")
-public class Credentials extends BaseEntity {
+public class Credential extends BaseEntity {
 
 	@Id
-    private String id;
+    private UUID id;
 
 	@Column(name = "hash",define = "TEXT NOT NULL")
     private String hash;
@@ -25,9 +30,13 @@ public class Credentials extends BaseEntity {
     private Boolean isActive;
 
 	@Column(name = "user_id", define = "UUID NOT NULL", reference = "users (id)")
-    private String userId;
+    private UUID userId;
 	
-	public Credentials(Row row) {
+	public Credential(Row row) {
 		this.digest(row, getClass(), this);
 	}
+
+    public Credential(LinkedCaseInsensitiveMap<Credential> row) {
+        this.digest(row, getClass(), this);
+    }
 }

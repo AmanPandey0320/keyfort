@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.data.entity.Client;
+import com.kabutar.keyfort.data.entity.Credential;
 import com.kabutar.keyfort.data.entity.User;
+import com.kabutar.keyfort.util.PasswordEncoderUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,6 +88,49 @@ public class TableLoader implements DefaultLoader {
 		
 	}
 
+    /**
+     * saves password
+     * @param u
+     * @return
+     */
+    private Mono<Credential> populateCredential(User u){
+        logger.info("Populating credential for user: {}",u.getUsername());
+        return this.credentialRepo.getAllActiveCredentialsByUser(u).collectList().flatMap(credentials -> {
+            for(Credential credential:credentials){
+                if( credential.getIsActive() && !credential.getIsDeleted() && PasswordEncoderUtil.matches(this.password,credential.getHash())){
+                    logger.info("Same password already active, no need to save");
+                    return Mono.just(credential);
+                }else{
+                    credential.setIsDeleted(true);
+                    credential.setIsActive(false);
+
+                    try {
+                        this.credentialRepo.save(credential);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+
+            Credential credential = new Credential();
+
+            credential.setIsActive(true);
+            credential.setIsDeleted(false);
+            credential.setHash(PasswordEncoderUtil.encodePassword(this.password));
+            credential.setUserId(u.getId());
+
+            try {
+                return this.credentialRepo.save(credential);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+    /**
+     * populates user
+     * @param c
+     * @return
+     */
     private Mono<User> populateUser(Client c){
         logger.info("Populating default user");
         return this.userRepo.getUserByUserName(this.userName).flatMap(user -> {
@@ -224,10 +269,21 @@ public class TableLoader implements DefaultLoader {
 	public void loadData() {
 		try {
 			this.createTables();
-			this.populateDimension().flatMap(this::populateClient).flatMap(this::populateUser).subscribe();
+			this.populateDimension()
+                    .flatMap(this::populateClient)
+                    .flatMap(this::populateUser)
+                    .flatMap(this::populateCredential)
+                    .subscribe(
+                            d -> {logger.info("Default values admin populated");},
+                            e -> {
+                                logger.error("Error while populating default admin");
+                                e.printStackTrace();
+                                System.exit(-1);
+                            }
+                    );
 		} catch (Exception e) {
 			e.printStackTrace();
-			System.exit(0);
+			System.exit(-1);
 		}
 	}
 
