@@ -1,121 +1,79 @@
 package com.kabutar.keyfort.security.service;
 
-//import com.kabutar.keyfort.constant.AuthConstant;
-//import com.kabutar.keyfort.data.entity.*;
-//import com.kabutar.keyfort.data.entity.client.Client;
-//import com.kabutar.keyfort.data.repository.*;
-//import com.kabutar.keyfort.util.Jwt;
-//import com.kabutar.keyfort.util.PasswordEncoderUtil;
-//import com.kabutar.keyfort.util.TokenGenerator;
-//import com.kabutar.keyfort.util.url.Matcher;
-//
-//import io.jsonwebtoken.Claims;
-//import reactor.core.publisher.Mono;
-
+import com.kabutar.keyfort.data.entity.Client;
+import com.kabutar.keyfort.data.entity.Dimension;
+import com.kabutar.keyfort.data.repository.ClientRepo;
+import com.kabutar.keyfort.data.repository.DimensionRepo;
+import com.kabutar.keyfort.util.url.Matcher;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-//import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-//import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
 
-//import java.sql.Timestamp;
-//import java.time.LocalDate;
-//import java.time.ZoneId;
-//import java.util.ArrayList;
-//import java.util.Date;
-//import java.util.List;
-//import java.util.Map;
-//import java.util.Optional;
-//import java.util.function.Consumer;
+import java.util.UUID;
 
 @Service
 public class AuthService {
 	
 	private final Logger logger = LogManager.getLogger(AuthService.class);
 
-//    @Autowired
-//    private ClientRepository clientRepository;
-//
-//    @Autowired
-//    private UserRepository userRepository;
-//
-//    @Autowired
-//    private CredentialRepository credentialRepository;
-//
-//    @Autowired
-//    private TokenRepository tokenRepository;
-//
-//    @Autowired
-//    private DimensionRepository dimensionRepository;
-//    
-//    @Autowired
-//    private SessionRepository sessionRepository;
-//
-//    @Autowired
-//    private Jwt jwt;
-//
-//    @Autowired
-//    private RoleService roleService;
-//    
-//    @Autowired
-//    private Matcher matcher;
-//    
-//    /**
-//     * 
-//     * @param clientId
-//     * @param redirectUri
-//     * @return
-//     * @throws Exception
-//     */
-//    public Mono<Client> matchRedirectUri(String clientId, String redirectUri) throws Exception {
-//    	Client client = clientRepository.findByClientId(clientId);
-//    	
-//    	//if redirect uri matches
-//    	if(matcher.match(redirectUri, clientId)) {
-//    		return Mono.just(client);
-//    	}else{
-//    		return Mono.error(new Exception("Invalid client"));
-//    	}
-//    }
-//
-//    /**
-//     *
-//     *
-//     * @return
-//     * @throws Exception 
-//     */
-//    public Mono<Boolean> isClientValid(
-//            String clientId,
-//            String clientSecret,
-//            String redirectUri,
-//            String grantType,
-//            String dimensionName
-//    ){
-//        try {
-//			return this.matchRedirectUri(clientId, redirectUri).flatMap((Client client) -> {
-//				Dimension dimension = dimensionRepository.findByName(dimensionName);
-//
-//			    if(
-//			            client.getClientSecret().equals(clientSecret) &&
-//			            client.getGrantType().equals(grantType) &&
-//			            dimension.getName().equals(dimensionName)
-//			    ){
-//			       return Mono.just(true);
-//			    }
-//			    return Mono.just(false);
-//			}).onErrorResume(Exception.class, (e) -> {
-//				logger.error("Error while validation client, Reason: {}",e.getLocalizedMessage());
-//				logger.debug(e);
-//				return Mono.just(false);
-//			}).defaultIfEmpty(false);
-//		} catch (Exception e) {
-//			// TODO Auto-generated catch block
-//			logger.debug(e);
-//			return Mono.error(e);
-//		}
-//        
-//        
-//    }
+    @Autowired
+    private Matcher matcher;
+
+    @Autowired
+    private ClientRepo clientRepo;
+
+    @Autowired
+    private DimensionRepo dimensionRepo;
+    /**
+     *
+     * @param clientId
+     * @param redirectUri
+     * @return
+     * @throws Exception
+     */
+    public Mono<Client> matchRedirectUri(String clientId, String redirectUri) throws Exception {
+    	return clientRepo.getById(UUID.fromString(clientId)).flatMap(client -> {
+            if(this.matcher.match(redirectUri,clientId)){
+                return Mono.just(client);
+            }
+            return Mono.error(new Exception("Invalid client"));
+        });
+    }
+
+    /**
+     *
+     *
+     * @return
+     * @throws Exception
+     */
+    public Mono<Boolean> isClientValid(
+            String clientId,
+            String clientSecret,
+            String redirectUri,
+            String grantType,
+            String dimensionName
+    ){
+        try {
+			return this.matchRedirectUri(clientId, redirectUri).flatMap((Client client) -> {
+
+                if(client.getSecret().equals(clientSecret) && client.getGrantType().equals(grantType)){
+                    return this.dimensionRepo.getDimensionByName(dimensionName)
+                            .flatMap(dimension -> Mono.just(dimension.getName().equals(dimensionName)));
+                }
+			    return Mono.just(false);
+			}).onErrorResume(Exception.class, (e) -> {
+				logger.error("Error while validation client, Reason: {}",e.getLocalizedMessage());
+				logger.debug(e);
+				return Mono.just(false);
+			}).defaultIfEmpty(false);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			logger.debug(e);
+			return Mono.error(e);
+		}
+    }
 //
 //    /**
 //     *

@@ -320,6 +320,86 @@ public class SqlProcessor {
     }
 
     /**
+     * Generates a SQL SELECT statement for selecting an entity record by its ID.
+     * Inspects the entity class to locate the @Id annotation and to find the table name from @Entity.
+     * The generated SQL uses named parameters for the where clause.
+     *
+     * Example output for Dimension:
+     * SELECT * FROM dimensions WHERE id = :id;
+     *
+     * @param clazz The entity class.
+     * @return SqlQueryWithFields with list containing the ID field and the SQL string.
+     * @throws Exception if @Entity/@Id annotation is missing or multiple @Id fields exist.
+     */
+    private static SqlQueryWithFields getSelectAllQuery(Class<?> clazz) throws Exception {
+        logger.debug("Entering into getSelectAllQuery...");
+
+        if (!clazz.isAnnotationPresent(Entity.class)) {
+            logger.debug("The class: {} is not an entity", clazz.getName());
+            throw new Exception("The class " + clazz.getName() + " is not an entity");
+        }
+
+        String tableName = clazz.getAnnotation(Entity.class).value();
+
+        String sql = "SELECT * FROM " + tableName + ";";
+        logger.debug("Generated SELECT SQL: {}", sql);
+        logger.debug("Exiting getSelectAllQuery function");
+
+        return new SqlQueryWithFields(Collections.emptyList(), sql);
+    }
+
+    /**
+     *
+     * @param clazz
+     * @return
+     * @throws Exception
+     */
+    private static SqlQueryWithFields getSelectQuery(Class<?> clazz) throws Exception {
+        logger.debug("Entering into getSelectQuery...");
+
+        if (!clazz.isAnnotationPresent(Entity.class)) {
+            logger.debug("The class: {} is not an entity", clazz.getName());
+            throw new Exception("The class " + clazz.getName() + " is not an entity");
+        }
+
+        String tableName = clazz.getAnnotation(Entity.class).value();
+
+        Field idField = null;
+        String idColumnName = null;
+
+        while (clazz != null) {
+            logger.debug("Destructuring fields of entity class: {}", clazz.getName());
+            Field[] fields = clazz.getDeclaredFields();
+
+            for (Field field : fields) {
+                boolean isId = field.isAnnotationPresent(Id.class);
+                if (isId) {
+                    if (idField != null) {
+                        throw new Exception("Multiple @Id fields are not supported");
+                    }
+                    idField = field;
+                    idColumnName = field.getAnnotation(Id.class).name();
+                    break; // Only one @Id field supported
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
+
+        if (idField == null) {
+            throw new Exception("No @Id field found in class " + clazz.getName());
+        }
+
+        String sql = "SELECT * FROM " + tableName + " WHERE " + idColumnName + " = :" + idField.getName() + ";";
+        logger.debug("Generated SELECT SQL: {}", sql);
+        logger.debug("Exiting getSelectQuery function");
+
+        List<Field> fields = new ArrayList<>();
+        fields.add(idField);
+
+        return new SqlQueryWithFields(fields, sql);
+    }
+
+    /**
      * returns <K,V> pair of SQL
      * @param clazz
      * @return
@@ -333,6 +413,8 @@ public class SqlProcessor {
         sqlMap.put(SqlConstant.SqlTypes.UPDATE_TABLE_SQL,getUpdateSQL(clazz));
         sqlMap.put(SqlConstant.SqlTypes.DELETE_ALL_SQL,getDeleteAllSQL(clazz));
         sqlMap.put(SqlConstant.SqlTypes.DELETE_ONE_BY_ID_SQl,getDeleteByIdSQL(clazz));
+        sqlMap.put(SqlConstant.SqlTypes.SELECT_FROM_TABLE_SQL,getSelectQuery(clazz));
+        sqlMap.put(SqlConstant.SqlTypes.SELECT_ALL_FROM_TABLE_SQL,getSelectAllQuery(clazz));
 
         return sqlMap;
     }

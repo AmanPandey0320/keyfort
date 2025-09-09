@@ -18,7 +18,19 @@ package com.kabutar.keyfort.controller.v1;
 //import org.springframework.http.HttpStatus;
 //import org.springframework.http.ResponseCookie;
 //import org.springframework.http.ResponseEntity;
+import com.kabutar.keyfort.data.repository.BaseRepository;
+import com.kabutar.keyfort.dto.ClientDto;
+import com.kabutar.keyfort.http.ResponseFactory;
+import com.kabutar.keyfort.security.service.AuthService;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
 //import org.springframework.web.server.ServerWebExchange;
 //import org.apache.logging.log4j.LogManager;
 //import org.apache.logging.log4j.Logger;
@@ -26,9 +38,10 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/auth/{dimension}")
 public class AuthController {
+    private final Logger logger = LogManager.getLogger(AuthController.class);
 
-//	@Autowired
-//	private AuthService authService;
+	@Autowired
+	private AuthService authService;
 //	
 //	@Autowired
 //	private SecureAuthFlow authFlow;
@@ -185,35 +198,33 @@ public class AuthController {
 //					.build().block());	
 //    }
 //	
-//	@PostMapping("/authz_client")
-//	public Mono<ResponseEntity<?>> authorizeClient(
-//			@RequestBody ClientDto client,
-//			@CookieValue(value="KF_SESSION_ID", required=false) String sessionId,
-//			@PathVariable("dimension") String dimension
-//	){
-//		return authService.isClientValid(
-//				client.getClientId(),
-//				client.getClientSecret(),
-//				client.getRedirectUri(),
-//				client.getGrantType(),
-//				dimension).flatMap((Boolean isValid) -> {
-//					if(isValid) {
-//						//success
-//						logger.info("Client with id: {}, requested authorization",client.getClientId());
-//						return new ResponseFactory()
-//								.status(HttpStatus.OK)
-//								.build();
-//					}else {
-//						return new ResponseFactory()
-//								.status(HttpStatus.BAD_REQUEST)
-//								.error(List.of("Invalid requester details"))
-//								.build();
-//					}
-//				}).onErrorResume((Throwable t) -> {
-//					return new ResponseFactory()
-//							.status(HttpStatus.BAD_REQUEST)
-//							.error(List.of(t.getLocalizedMessage()))
-//							.build();
-//				});
-//	}
+	@PostMapping("/authz_client")
+	public Mono<ResponseEntity<?>> authorizeClient(
+			@RequestBody ClientDto client,
+			@CookieValue(value="KF_SESSION_ID", required=false) String sessionId,
+			@PathVariable("dimension") String dimension
+	){
+		return authService.isClientValid(
+				client.getClientId(),
+				client.getClientSecret(),
+				client.getRedirectUri(),
+				client.getGrantType(),
+				dimension).flatMap((Boolean isValid) -> {
+					if(isValid) {
+						//success
+						logger.info("Client with id: {}, requested authorization",client.getClientId());
+						return new ResponseFactory()
+								.status(HttpStatus.OK)
+								.build();
+					}else {
+						return new ResponseFactory()
+								.status(HttpStatus.BAD_REQUEST)
+								.error(List.of("Invalid requester details"))
+								.build();
+					}
+				}).onErrorResume((Throwable t) -> new ResponseFactory()
+                        .status(HttpStatus.BAD_REQUEST)
+                        .error(List.of(t.getLocalizedMessage()))
+                        .build());
+	}
 }

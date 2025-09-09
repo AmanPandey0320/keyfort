@@ -39,7 +39,7 @@ public abstract class BaseRepository<T,C> {
      * related to repository operations.
      */
     private final Logger logger = LogManager.getLogger(BaseRepository.class);
-    private final Class<?> entityClass;
+    private final Class<C> entityClass;
     private final DatabaseClient dbClient;
     private  Map<String,SqlQueryWithFields> sqlMap;
 
@@ -265,6 +265,28 @@ public abstract class BaseRepository<T,C> {
         Field field = sqlQueryWithFields.getFields().getFirst();
         DatabaseClient.GenericExecuteSpec spec = this.dbClient.sql(sqlQueryWithFields.getSql()).bind(field.getName(),id);
         return spec.fetch().rowsUpdated();
+    }
+
+    /**
+     * repo function to get by id
+     * @param id
+     * @return
+     */
+    public Mono<C> getById(T id){
+        SqlQueryWithFields sqlQueryWithFields = this.sqlMap.get(SqlConstant.SqlTypes.SELECT_FROM_TABLE_SQL);
+        Field field = sqlQueryWithFields.getFields().getFirst();
+        DatabaseClient.GenericExecuteSpec spec = this.dbClient.sql(sqlQueryWithFields.getSql()).bind(field.getName(),id);
+        return this.getOne(spec, this.entityClass);
+    }
+
+    /**
+     *
+     * @return
+     */
+    public Flux<C> getAll(){
+        String sql = this.sqlMap.get(SqlConstant.SqlTypes.SELECT_ALL_FROM_TABLE_SQL).getSql();
+        DatabaseClient.GenericExecuteSpec spec = this.dbClient.sql(sql);
+        return this.getAll(spec,this.entityClass);
     }
 
 }

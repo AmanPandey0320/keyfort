@@ -14,7 +14,7 @@ import java.util.UUID;
 
 
 @Repository
-public class ClientRepo extends BaseRepository<String, Client> {
+public class ClientRepo extends BaseRepository<UUID, Client> {
 	private final Logger logger = LogManager.getLogger(ClientRepo.class);
 	private final DatabaseClient databaseClient;
 
@@ -33,13 +33,18 @@ public class ClientRepo extends BaseRepository<String, Client> {
 	public Mono<Client> save(Client c) throws Exception {
         if(c.getId() == null) {
             return this.insertIntoTable(c).flatMap(id -> {
-                c.setId(UUID.fromString(id));
+                c.setId(id);
                 return Mono.just(c);
             });
         }
         return this.updateTable(c).flatMap(id -> Mono.just(c));
     }
 
+    /**
+     * get clients by dimension id
+     * @param dimensionId
+     * @return
+     */
     public Flux<Client> getClientsByDimension(UUID dimensionId){
         String GET_CLIENTS_BY_DIMENSION_SQL = "SELECT * from clients WHERE dimension_id=:did";
         DatabaseClient.GenericExecuteSpec spec = this.databaseClient.sql(GET_CLIENTS_BY_DIMENSION_SQL).bind("did",dimensionId);
