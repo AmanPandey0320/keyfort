@@ -9,8 +9,10 @@ import com.kabutar.keyfort.data.entity.Token;
 
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 @Repository
-public class TokenRepo extends BaseRepository<String,Token> {
+public class TokenRepo extends BaseRepository<UUID,Token> {
 	private final Logger logger = LogManager.getLogger(TokenRepo.class);
 	private final DatabaseClient databaseClient;
 	
@@ -27,9 +29,14 @@ public class TokenRepo extends BaseRepository<String,Token> {
 	}
 
 	@Override
-	public Mono<String> save(Token t) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public Mono<Token> save(Token t) throws Exception {
+        if(t.getId() == null) {
+            return this.insertIntoTable(t).flatMap(id -> {
+                t.setId(id);
+                return Mono.just(t);
+            });
+        }
+        return this.updateTable(t).flatMap(id -> Mono.just(t));
 	}
 
 }

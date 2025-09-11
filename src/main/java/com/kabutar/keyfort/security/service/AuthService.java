@@ -1,9 +1,13 @@
 package com.kabutar.keyfort.security.service;
 
+import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.data.entity.Client;
-import com.kabutar.keyfort.data.entity.Dimension;
-import com.kabutar.keyfort.data.repository.ClientRepo;
-import com.kabutar.keyfort.data.repository.DimensionRepo;
+import com.kabutar.keyfort.data.entity.Credential;
+import com.kabutar.keyfort.data.entity.Token;
+import com.kabutar.keyfort.data.entity.User;
+import com.kabutar.keyfort.data.repository.*;
+import com.kabutar.keyfort.util.PasswordEncoderUtil;
+import com.kabutar.keyfort.util.TokenGenerator;
 import com.kabutar.keyfort.util.url.Matcher;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -11,6 +15,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
+import java.security.Timestamp;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -26,6 +32,15 @@ public class AuthService {
 
     @Autowired
     private DimensionRepo dimensionRepo;
+
+    @Autowired
+    private UserRepo userRepo;
+
+    @Autowired
+    private CredentialRepo credentialRepo;
+
+    @Autowired
+    private TokenRepo tokenRepo;
     /**
      *
      * @param clientId
@@ -75,65 +90,51 @@ public class AuthService {
 		}
     }
 //
-//    /**
-//     *
-//     * @param username
-//     * @param password
-//     * @param clientId
-//     * @return
-//     */
-//    public Mono<User> matchUserCredential(String username, String password){
-//        User user = userRepository.findByUsername(username);
-//
-//        if(user == null){
-//        	logger.info("User with username: {} login failed for invalid dimension or clienti-id",username);
-//            return Mono.empty();
-//        }
-//       
-//        logger.debug("User with username: {} found",user.getUsername());
-//        
-//
-//        List<Credential> credentialList = credentialRepository.findActiveCredentialsForUser(user.getId());
-//
-//        if(credentialList.size() != 1){
-//            // user should have 1 active credential
-//        	logger.info("User with username: {} has multiple or no active credentials",username);
-//        	logger.debug("User with username: {} has {} active credentials",username,credentialList.size());
-//            Mono.empty();
-//        }
-//        Credential credential = credentialList.get(0);
-//
-//        if(PasswordEncoderUtil.matches(password,credential.getHash())){
-//        	logger.info("User with username: {} login success for valid credentials",username);
-//            return Mono.just(user);
-//        }
-//
-//        logger.info("User with username: {} login failed for invalid credentials",username);
-//        return Mono.empty();
-//    }
-//
-//
-//    /**
-//     *
-//     * @param user
-//     * @return
-//     */
-//    public Mono<Token> getAuthTokenForUser(User user){
-//        Token token = new Token();
-//        Timestamp currentTimestamp = new Timestamp(System.currentTimeMillis());
-//
-//        token.setToken(TokenGenerator.generateToken128());
-//        token.setUser(user);
-//        token.setType(AuthConstant.TokenType.AUTHORIZATION);
-//        token.setCreatedAt(currentTimestamp);
-//        token.setValidTill(new Timestamp(currentTimestamp.getTime() + AuthConstant.ExpiryTime.AUTHZ_CODE *1000  ));
-//
-//        token = tokenRepository.save(token);
-//        
-//        logger.debug("User with username: {} has an authcode",user.getUsername());
-//
-//        return Mono.just(token);
-//    }
+    /**
+     *
+     * @param username
+     * @param password
+     * @param clientId
+     * @return
+     */
+    public Mono<User> matchUserCredential(String username, String password){
+        return this.userRepo.getUserByUserName(username).flatMap(user -> {
+            logger.debug("User with username: {} found",user.getUsername());
+            return this.credentialRepo.getAllActiveCredentialsByUser(user).collectList().flatMap(credentials -> {
+                if(credentials.size() != 1){
+                    logger.info("User with username: {} has multiple or no active credentials",username);
+                    logger.debug("User with username: {} has {} active credentials",username,credentials.size());
+                    Mono.empty();
+                }
+                Credential credential = credentials.getFirst();
+
+                if(PasswordEncoderUtil.matches(password,credential.getHash())){
+                    logger.info("User with username: {} login success for valid credentials",username);
+                    return Mono.just(user);
+                }
+                logger.info("User with username: {} login failed for invalid credentials",username);
+                return Mono.empty();
+            });
+        }).switchIfEmpty(Mono.defer(() -> Mono.empty()));
+    }
+
+    /**
+     *
+     * @param user
+     * @return
+     */
+    public Mono<Token> getAuthTokenForUser(User user) throws Exception {
+        Token token = new Token();
+
+        token.setValid(true);
+        token.setValidTill(LocalDateTime.now().plusSeconds(AuthConstant.ExpiryTime.AUTHZ_CODE));
+        token.setUserId(user.getId());
+        token.setType(AuthConstant.TokenType.AUTHORIZATION);
+        token.setToken(TokenGenerator.generateToken128());
+
+        return this.tokenRepo.save(token);
+
+    }
 //
 //    /**
 //     *

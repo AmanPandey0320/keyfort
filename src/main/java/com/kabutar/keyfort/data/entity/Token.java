@@ -1,6 +1,7 @@
 package com.kabutar.keyfort.data.entity;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.data.annotation.Column;
@@ -11,6 +12,7 @@ import io.r2dbc.spi.Row;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.util.LinkedCaseInsensitiveMap;
 
 @Getter
 @Setter
@@ -19,7 +21,7 @@ import lombok.ToString;
 public class Token extends BaseEntity {
 
 	@Id
-    private String id;
+    private UUID id;
 
 	@Column(name = "token", define = "TEXT")
     private String token;
@@ -35,7 +37,7 @@ public class Token extends BaseEntity {
     private boolean isValid;
 
     @Column(name = "user_id", define = "UUID NOT NULL", reference = "users (id)")
-    private String userId;
+    private UUID userId;
 
 	public Token() {
 		this.type = AuthConstant.TokenType.AUTHORIZATION;
@@ -44,6 +46,9 @@ public class Token extends BaseEntity {
 	public Token(Row row) {
 		this.digest(row, getClass(), this);
 	}
-    
+
+    public Token(LinkedCaseInsensitiveMap<Credential> row) {
+        this.digest(row, getClass(), this);
+    }
     
 }

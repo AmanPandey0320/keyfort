@@ -8,6 +8,8 @@ package com.kabutar.keyfort.controller.v1;
 //import com.kabutar.keyfort.dto.ClientDto;
 //import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.constant.AuthConstant;
+import com.kabutar.keyfort.data.entity.Token;
+import com.kabutar.keyfort.data.entity.User;
 import com.kabutar.keyfort.dto.UserDto;
 //import com.kabutar.keyfort.http.ResponseFactory;
 //import com.kabutar.keyfort.security.interfaces.SecureAuthFlow;
@@ -22,6 +24,7 @@ import com.kabutar.keyfort.dto.UserDto;
 import com.kabutar.keyfort.data.repository.BaseRepository;
 import com.kabutar.keyfort.dto.ClientDto;
 import com.kabutar.keyfort.http.ResponseFactory;
+import com.kabutar.keyfort.security.interfaces.SecureAuthFlow;
 import com.kabutar.keyfort.security.service.AuthService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -45,6 +48,9 @@ public class AuthController {
 
 	@Autowired
 	private AuthService authService;
+
+    @Autowired
+    private SecureAuthFlow authFlow;
 //	
 //	@Autowired
 //	private SecureAuthFlow authFlow;
@@ -64,70 +70,55 @@ public class AuthController {
 			@PathVariable("dimension") String dimension,
 			ServerWebExchange exchange
 	){
-        return new ResponseFactory()
-                .status(HttpStatus.OK)
-                .data(List.of(Map.of("data","new data")))
-                .build();
 
-//		logger.info("Entering login_action controller");
-//
-//		String sessionId = exchange.getAttributeOrDefault(AuthConstant.CookieType.SESSION_ID, null);
-//
-//		if(sessionId == null) {
-//			logger.debug("No valid session found");
-//			return new ResponseFactory()
-//					.error(List.of("No valid session found"))
-//					.status(HttpStatus.UNAUTHORIZED)
-//					.build();
-//		}
-//
-//		Mono<User> userMono = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword());
-//
-//		return userMono.flatMap(user -> {
-//			logger.debug("User found with details: {}",user.toString());
-//			try {
-//				return authService.matchRedirectUri(userDto.getClientId(), userDto.getRedirectUri())
-//						.hasElement()
-//						.flatMap(isValid -> {
-//							Token token = authService.getAuthTokenForUser(user).block();
-//
-//							//handling authflow
-//							this.authFlow.init(sessionId, userDto.getCodeChallange())
-//							.subscribe((data) -> {
-//								logger.debug("Auth flow initiated for session {}",sessionId);
-//							},
-//							(Throwable t) -> {
-//								logger.error("Error occured while initializing authflow, reason: {}",t.getLocalizedMessage());
-//								logger.debug("Authflow error: ", t);
-//							});
-//
-//							return new ResponseFactory()
-//							.status(HttpStatus.OK)
-//							.data(List.of( Map.of("authorizationCode",token.getToken())))
-//							.build();
-//				});
-//			} catch (Exception e) {
-//				logger.error("Error on login action, reason: {}",e.getLocalizedMessage());
-//				logger.debug(e);
-//				return new ResponseFactory()
-//						.error(List.of(e.getMessage()))
-//						.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//						.build();
-//			}
-//
-//
-//		})
-//		.onErrorResume((Throwable t) -> {
-//			return new ResponseFactory()
-//			.error(List.of(t.getLocalizedMessage()))
-//			.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//			.build();
-//		})
-//		.defaultIfEmpty(new ResponseFactory()
-//				.error(List.of("username or password is wrong!"))
-//				.status(HttpStatus.UNAUTHORIZED)
-//				.build().block());
+		logger.info("Entering login_action controller");
 
+		String sessionId = exchange.getAttributeOrDefault(AuthConstant.CookieType.SESSION_ID, null);
+
+		if(sessionId == null) {
+			logger.debug("No valid session found");
+			return new ResponseFactory()
+					.error(List.of("No valid session found"))
+					.status(HttpStatus.UNAUTHORIZED)
+					.build();
+		}
+
+		Mono<User> userMono = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword());
+
+		return userMono.flatMap(user -> {
+			logger.debug("User found with details: {}",user.toString());
+            try {
+                return authService.matchRedirectUri(userDto.getClientId(), userDto.getRedirectUri())
+                        .hasElement()
+                        .flatMap(isValid -> {
+                            if(isValid){
+                                try {
+                                    return authService.getAuthTokenForUser(user).flatMap(token -> {
+                                        //init auth flowflatMap()
+                                        this.authFlow.init(sessionId,userDto.getCodeChallange()).subscribe(
+                                                d -> { logger.debug("Auth flow initiated for session {}",sessionId); },
+                                                e -> {
+                                                    logger.error("Error occured while initializing authflow, reason: {}",e.getLocalizedMessage());
+                                                    logger.debug("Authflow error: ", e);
+                                                }
+                                        );
+
+                                        return new ResponseFactory()
+                                                .status(HttpStatus.OK)
+                                                .data(List.of( Map.of("authorizationCode",token.getToken())))
+                                                .build();
+                                    });
+                                } catch (Exception e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+
+                            return new ResponseFactory().status(HttpStatus.UNAUTHORIZED).build();
+                        });
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
 	}
 //
 //	/**
