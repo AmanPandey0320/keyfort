@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 @Repository
-public class UserRepo extends BaseRepository<String,User> {
+public class UserRepo extends BaseRepository<UUID,User> {
 	private final Logger logger = LogManager.getLogger(UserRepo.class);
 	private final DatabaseClient databaseClient;
 	
@@ -34,7 +34,7 @@ public class UserRepo extends BaseRepository<String,User> {
 	public Mono<User> save(User u) throws Exception {
 		if(u.getId() == null){
             return  this.insertIntoTable(u).flatMap(id -> {
-                u.setId(UUID.fromString(id));
+                u.setId(id);
                 return Mono.just(u);
             });
         }

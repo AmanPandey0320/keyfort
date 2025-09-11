@@ -153,7 +153,7 @@ public abstract class BaseRepository<T,C> {
         // Fetch auto-generated primary key
         return spec.fetch()
                 .first()
-                .map(row -> (T) row.get("id").toString());
+                .map(row -> (T) row.get("id"));
         
     }
     

@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 @Repository
-public class CredentialRepo extends BaseRepository<String, Credential> {
+public class CredentialRepo extends BaseRepository<UUID, Credential> {
 	private final Logger logger = LogManager.getLogger(CredentialRepo.class);
 	private final DatabaseClient databaseClient;
 	
@@ -34,7 +34,7 @@ public class CredentialRepo extends BaseRepository<String, Credential> {
 	public Mono<Credential> save(Credential c) throws Exception {
         if(c.getId() == null) {
             return this.insertIntoTable(c).flatMap(id -> {
-                c.setId(UUID.fromString(id));
+                c.setId(id);
                 return Mono.just(c);
             });
         }

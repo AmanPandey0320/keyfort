@@ -12,7 +12,7 @@ import reactor.core.publisher.Mono;
 import java.util.UUID;
 
 @Repository
-public class DimensionRepo extends BaseRepository<String,Dimension> {
+public class DimensionRepo extends BaseRepository<UUID,Dimension> {
 	private final Logger logger = LogManager.getLogger(DimensionRepo.class);
 	private final DatabaseClient dbClient;
 
@@ -31,7 +31,7 @@ public class DimensionRepo extends BaseRepository<String,Dimension> {
 	public Mono<Dimension> save(Dimension d) throws Exception {
 		if(d.getId() == null) {
 			return this.insertIntoTable(d).flatMap(id -> {
-                d.setId(UUID.fromString(id));
+                d.setId(id);
                 return Mono.just(d);
             });
 		}

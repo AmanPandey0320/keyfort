@@ -9,8 +9,10 @@ import com.kabutar.keyfort.data.entity.Session;
 
 import reactor.core.publisher.Mono;
 
+import java.util.UUID;
+
 @Repository
-public class SessionRepo extends BaseRepository<String,Session> {
+public class SessionRepo extends BaseRepository<UUID,Session> {
 	private final Logger logger = LogManager.getLogger(SessionRepo.class);
 	private final DatabaseClient databaseClient;
 	
@@ -26,9 +28,14 @@ public class SessionRepo extends BaseRepository<String,Session> {
 	}
 
 	@Override
-	public Mono<String> save(Session s) throws Exception {
-		// TODO Auto-generated method stub
-		return null;
+	public Mono<Session> save(Session s) throws Exception {
+        if(s.getId() == null) {
+            return this.insertIntoTable(s).flatMap(id -> {
+                s.setId(id);
+                return Mono.just(s);
+            });
+        }
+        return this.updateTable(s).flatMap(id -> Mono.just(s));
 	}
 
 }

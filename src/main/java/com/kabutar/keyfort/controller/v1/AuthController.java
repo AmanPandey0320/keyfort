@@ -7,7 +7,8 @@ package com.kabutar.keyfort.controller.v1;
 //import com.kabutar.keyfort.data.entity.User;
 //import com.kabutar.keyfort.dto.ClientDto;
 //import com.kabutar.keyfort.dto.TokenDto;
-//import com.kabutar.keyfort.dto.UserDto;
+import com.kabutar.keyfort.constant.AuthConstant;
+import com.kabutar.keyfort.dto.UserDto;
 //import com.kabutar.keyfort.http.ResponseFactory;
 //import com.kabutar.keyfort.security.interfaces.SecureAuthFlow;
 //import com.kabutar.keyfort.security.service.AuthService;
@@ -28,9 +29,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Map;
 //import org.springframework.web.server.ServerWebExchange;
 //import org.apache.logging.log4j.LogManager;
 //import org.apache.logging.log4j.Logger;
@@ -48,23 +51,28 @@ public class AuthController {
 //	
 //	private final Logger logger  = LogManager.getLogger(AuthController.class);
 //
-//	/**
-//	 *
-//	 * @param clientId
-//	 * @param userDto
-//	 * @return
-//	 */
-//
-//	@PostMapping("/login_action")
-//	public Mono<ResponseEntity<?>> loginAction(
-//			@RequestBody UserDto userDto,
-//			@PathVariable("dimension") String dimension,
-//			ServerWebExchange exchange
-//	){
+	/**
+	 *
+	 * @param clientId
+	 * @param userDto
+	 * @return
+	 */
+
+	@PostMapping("/login_action")
+	public Mono<ResponseEntity<?>> loginAction(
+			@RequestBody UserDto userDto,
+			@PathVariable("dimension") String dimension,
+			ServerWebExchange exchange
+	){
+        return new ResponseFactory()
+                .status(HttpStatus.OK)
+                .data(List.of(Map.of("data","new data")))
+                .build();
+
 //		logger.info("Entering login_action controller");
-//		
+//
 //		String sessionId = exchange.getAttributeOrDefault(AuthConstant.CookieType.SESSION_ID, null);
-//		
+//
 //		if(sessionId == null) {
 //			logger.debug("No valid session found");
 //			return new ResponseFactory()
@@ -72,9 +80,9 @@ public class AuthController {
 //					.status(HttpStatus.UNAUTHORIZED)
 //					.build();
 //		}
-//		
+//
 //		Mono<User> userMono = authService.matchUserCredential(userDto.getUsername(), userDto.getPassword());
-//		
+//
 //		return userMono.flatMap(user -> {
 //			logger.debug("User found with details: {}",user.toString());
 //			try {
@@ -82,7 +90,7 @@ public class AuthController {
 //						.hasElement()
 //						.flatMap(isValid -> {
 //							Token token = authService.getAuthTokenForUser(user).block();
-//							
+//
 //							//handling authflow
 //							this.authFlow.init(sessionId, userDto.getCodeChallange())
 //							.subscribe((data) -> {
@@ -92,7 +100,7 @@ public class AuthController {
 //								logger.error("Error occured while initializing authflow, reason: {}",t.getLocalizedMessage());
 //								logger.debug("Authflow error: ", t);
 //							});
-//							
+//
 //							return new ResponseFactory()
 //							.status(HttpStatus.OK)
 //							.data(List.of( Map.of("authorizationCode",token.getToken())))
@@ -106,8 +114,8 @@ public class AuthController {
 //						.status(HttpStatus.INTERNAL_SERVER_ERROR)
 //						.build();
 //			}
-//			
-//			
+//
+//
 //		})
 //		.onErrorResume((Throwable t) -> {
 //			return new ResponseFactory()
@@ -119,8 +127,8 @@ public class AuthController {
 //				.error(List.of("username or password is wrong!"))
 //				.status(HttpStatus.UNAUTHORIZED)
 //				.build().block());
-//		
-//	}
+
+	}
 //
 //	/**
 //	 *
