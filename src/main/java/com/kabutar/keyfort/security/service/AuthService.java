@@ -1,11 +1,9 @@
 package com.kabutar.keyfort.security.service;
 
 import com.kabutar.keyfort.constant.AuthConstant;
-import com.kabutar.keyfort.data.entity.Client;
-import com.kabutar.keyfort.data.entity.Credential;
-import com.kabutar.keyfort.data.entity.Token;
-import com.kabutar.keyfort.data.entity.User;
+import com.kabutar.keyfort.data.entity.*;
 import com.kabutar.keyfort.data.repository.*;
+import com.kabutar.keyfort.util.Jwt;
 import com.kabutar.keyfort.util.PasswordEncoderUtil;
 import com.kabutar.keyfort.util.TokenGenerator;
 import com.kabutar.keyfort.util.url.Matcher;
@@ -15,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
-import java.security.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +44,12 @@ public class AuthService {
 
     @Autowired
     private SessionRepo sessionRepo;
+
+    @Autowired
+    private RoleService roleService;
+
+    @Autowired
+    private Jwt jwt;
     /**
      *
      * @param clientId
@@ -156,127 +159,108 @@ public class AuthService {
             return false;
         }
 
-        if(token.getValidTill().isAfter(LocalDateTime.now())){
+        if(token.getValidTill().isBefore(LocalDateTime.now())){
             return false;
         }
 
         return true;
     }
 
-//    /**
-//     *
-//     * @param token
-//     * @param grantType
-//     * @return
-//     */
-//    public Mono<Map<String,Object>> exchangeForTokens(String token, String clientSecret, String dimension, String sessionId){
-//        return Mono.zip(this.tokenRepo.getDetailsOfToken(token),this.sessionRepo.getById(UUID.fromString(sessionId)).hasElement()).flatMap(objects -> {
-//            Map<String,Object> savedToken = objects.getT1();
-//            Boolean hasSession = objects.getT2();
-//
-//            boolean isValid = true;
-//            List<String> errors = new ArrayList<>();
-//
-//            if(isValid && !this.isTokenValid(savedToken)){
-//                logger.warn("Authentication code is not valid");
-//                errors.add("Session timed out!");
-//                isValid = false;
-//            }
-//
-//            if(isValid && !savedToken.getType().equals(AuthConstant.TokenType.AUTHORIZATION)){
-//                logger.warn("Authentication code does not have appropriate grant");
-//                errors.add("Invalid token!");
-//                isValid = false;
-//            }
-//
-//
-//        });
-//        Session session = sessionRepository.findById(sessionId).orElseThrow();
-//        boolean isValid = true;
-//        List<String> errors = new ArrayList<>();
-//
-//        if(isValid && !this.isTokenValid(savedToken)){
-//        	logger.warn("Authentication code {} is not valid",token);
-//        	errors.add("Invalid user");
-//            isValid = false;
-//        }
-//
-//        if(isValid && !savedToken.getType().equals(AuthConstant.TokenType.AUTHORIZATION)){
-//        	logger.warn("Authentication code {} does not have valid grants",token);
-//        	errors.add("Invalid grants");
-//        	isValid = false;
-//        }
-//
-//        if(isValid && !savedToken.getUser().getClient().getDimension().getName().equals(dimension)){
-//        	logger.warn("Authentication code {} does not belong to current dimension {}",token,dimension);
-//        	errors.add("Invalid user or dimension");
-//        	isValid = false;
-//        }
-//
-//        if(isValid && !savedToken.getUser().getClient().getClientSecret().equals(clientSecret)) {
-//        	logger.warn("Authentication code {} does not have valid client secret",token);
-//        	errors.add("Invalid client");
-//        	isValid = false;
-//        }
-//
-//        if(!isValid) {
-//        	return Mono.just(Map.of("isValid",isValid, "errors",errors));
-//        }
-//
-//        if(sessionId == null) {
-//        	logger.warn("Authentication code {} does not have valid session",token);
-//        	errors.add("Session timeout");
-//        	isValid = false;
-//        }
-//
-//        User user = savedToken.getUser();
-//        //mark current auth token as invalid
-//        savedToken.setValid(false);
-//
-//
-//        //setting user to session
-//        session.setUser(user);
-//        session.setAuthenticated(true);
-//        session.setLastUsed(new Date());
-//
-//        //save to repository
-//        tokenRepository.save(savedToken);
-//        sessionRepository.save(session);
-//
-//        return roleService.getRolesForUser(savedToken.getUser()).flatMap(roles -> {
-//        	String accessToken = null;
-//            String refreshToken = null;
-//            accessToken = jwt.generateToken(
-//                    Map.of(
-//                            AuthConstant.ClaimType.ROLE,roles,
-//                            AuthConstant.ClaimType.SESSION,sessionId
-//                    ),
-//                    user.getUsername(),
-//                    AuthConstant.ExpiryTime.ACCESS_TOKEN
-//            );
-//
-//            refreshToken = jwt.generateToken(
-//                    Map.of(
-//                            AuthConstant.ClaimType.ROLE,roles,
-//                            AuthConstant.ClaimType.SESSION,sessionId
-//                    ),
-//                    user.getUsername(),
-//                    AuthConstant.ExpiryTime.REFRESH_TOKEN
-//            );
-//
-//            logger.debug("access token and new session generated for user: {}",user.getUsername());
-//
-//            return Mono.just(Map.of(
-//                    "isValid",true,
-//                    "refresh",refreshToken,
-//                    "access",accessToken,
-//                    "errors",errors
-//            ));
-//        });
-//
-//
-//
-//    }
+    /**
+     *
+     * @param token
+     * @param clientSecret
+     * @param dimension
+     * @param sessionId
+     * @return
+     */
+    public Mono<Map<String,Object>> exchangeForTokens(String token, String clientSecret, String dimension, String sessionId){
+        return Mono.zip(this.tokenRepo.getDetailsOfToken(token),this.sessionRepo.getById(UUID.fromString(sessionId))).flatMap(objects -> {
+            Token savedToken = objects.getT1();
+            Session session = objects.getT2();
+            boolean hasSession = true;
+
+            boolean isValid = true;
+            List<String> errors = new ArrayList<>();
+
+            if(!this.isTokenValid(savedToken)){
+                logger.warn("Authentication code is not valid");
+                errors.add("Session timed out!");
+                isValid = false;
+            }
+
+            if(isValid && !savedToken.getType().equals(AuthConstant.TokenType.AUTHORIZATION)){
+                logger.warn("Authentication code does not have appropriate grant");
+                errors.add("Invalid token!");
+                isValid = false;
+            }
+
+            try {
+                if(isValid && !savedToken.get("dimension").equals(dimension)){
+                    logger.warn("Authentication code comes from invalid requester {}",dimension);
+                    errors.add("Invalid requester!");
+                    isValid = false;
+                }
+
+                if (isValid && !savedToken.get("secret").equals(clientSecret)){
+                    logger.warn("Authentication code comes from invalid requester {} with incorrect client secret",dimension);
+                    errors.add("Invalid requester!");
+                    isValid = false;
+                }
+
+                if(!isValid){
+                    return Mono.just(Map.of("isValid",isValid, "errors",errors));
+                }
+
+                //make current token valid as false;
+                savedToken.setValid(false);
+                this.tokenRepo.save(savedToken).subscribe();
+
+                session.setUserId(savedToken.getUserId());
+                session.setAuthenticated(true);
+                session.setLastUsed(LocalDateTime.now());
+
+                //save session as authenticated
+                this.sessionRepo.save(session).subscribe();
+
+
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            return roleService.getRolesForUser(savedToken.getUserId()).flatMap(roles -> {
+                String accessToken = null;
+                String refreshToken = null;
+                accessToken = jwt.generateToken(
+                        Map.of(
+                                AuthConstant.ClaimType.ROLE,roles,
+                                AuthConstant.ClaimType.SESSION,sessionId
+                        ),
+                        savedToken.get("username").toString(),
+                        AuthConstant.ExpiryTime.ACCESS_TOKEN
+                );
+
+                refreshToken = jwt.generateToken(
+                        Map.of(
+                                AuthConstant.ClaimType.ROLE,roles,
+                                AuthConstant.ClaimType.SESSION,sessionId
+                        ),
+                        savedToken.get("username").toString(),
+                        AuthConstant.ExpiryTime.REFRESH_TOKEN
+                );
+
+                logger.debug("access token and new session generated for user: {}",savedToken.get("username").toString());
+
+                return Mono.just(Map.of(
+                        "isValid",true,
+                        "refresh",refreshToken,
+                        "access",accessToken,
+                        "errors",errors
+                ));
+            });
+
+        });
+    }
 //
 //    /**
 //     *

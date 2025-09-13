@@ -31,6 +31,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
@@ -38,6 +39,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 //import org.springframework.web.server.ServerWebExchange;
 //import org.apache.logging.log4j.LogManager;
 //import org.apache.logging.log4j.Logger;
@@ -122,81 +124,81 @@ public class AuthController {
         });
 	}
 
-//	/**
-//	 *
-//	 * @param authcode
-//	 * @return
-//	 */
-//	@PostMapping("/token")
-//	public Mono<ResponseEntity<?>> token(
-//			@RequestBody TokenDto tokenDto,
-//			@PathVariable("dimension") String dimension,
-//			ServerWebExchange exchange
-//	){
-//
-//			String sessionId = exchange.getAttributeOrDefault(AuthConstant.CookieType.SESSION_ID, null);
-//			return authService.exchangeForTokens(tokenDto.getToken(),tokenDto.getClientSecret(), dimension,sessionId).flatMap(tokens -> {
-//				if(!((boolean) tokens.get("isValid"))){
-//					return new ResponseFactory()
-//							.error((List<String>)tokens.getOrDefault("errors",List.of("Unexpected error")))
-//							.status(HttpStatus.UNAUTHORIZED)
-//							.build();
-//				}
-//
-//				return this.authFlow.verify(sessionId, tokenDto.getCodeVerifier())
-//	                    .flatMap(isVerified -> {
-//	                        if (!isVerified) {
-//	                            return new ResponseFactory()
-//	                                    .error(List.of("Invalid requester or code verifier"))
-//	                                    .status(HttpStatus.BAD_REQUEST)
-//	                                    .build();
-//	                        }
-//
-//	                        // If verification is successful, proceed to build the success response
-//	                        ResponseCookie accessTokenCookie = ResponseCookie.from(AuthConstant.CookieType.ACCESS_TOKEN, (String) tokens.get("access"))
-//	                                .httpOnly(true)
-//	                                .path("/")
-//	                                .maxAge(AuthConstant.ExpiryTime.ACCESS_TOKEN)
-//	                                .build();
-//
-//	                        ResponseCookie refreshTokenCookie = ResponseCookie.from(AuthConstant.CookieType.REFRESH_TOKEN, (String) tokens.get("refresh")) // Corrected cookie name
-//	                                .httpOnly(true)
-//	                                .path("/")
-//	                                .maxAge(AuthConstant.ExpiryTime.REFRESH_TOKEN)
-//	                                .build();
-//
-//	                        return new ResponseFactory()
-//	                                .cookie(accessTokenCookie)
-//	                                .cookie(refreshTokenCookie)
-//	                                .data(List.of(Map.of(
-//	                                        "accessToken", tokens.get("access"),
-//	                                        "refreshToken", tokens.get("refresh")
-//	                                )))
-//	                                .status(HttpStatus.OK)
-//	                                .build();
-//	                    })
-//	                    .onErrorResume(e -> {
-//	                        // Catch errors specifically from authFlow.verify
-//	                        logger.error("Error during authFlow verification, reason: {}", e.getLocalizedMessage());
-//	                        logger.debug("Verification error details: ", e);
-//	                        return new ResponseFactory()
-//	                                .error(List.of("Verification failed: " + e.getMessage()))
-//	                                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-//	                                .build();
-//	                    });
-//
-//			})
-//			.onErrorResume(t -> {
-//				return new ResponseFactory()
-//						.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//						.error(List.of(t.getMessage()))
-//						.build();
-//			})
-//			.defaultIfEmpty(new ResponseFactory()
-//					.status(HttpStatus.INTERNAL_SERVER_ERROR)
-//					.error(List.of("Unknown error occured"))
-//					.build().block());
-//    }
+	/**
+	 *
+	 * @param authcode
+	 * @return
+	 */
+	@PostMapping("/token")
+	public Mono<ResponseEntity<?>> token(
+			@RequestBody TokenDto tokenDto,
+			@PathVariable("dimension") String dimension,
+			ServerWebExchange exchange
+	){
+
+			String sessionId = exchange.getAttributeOrDefault(AuthConstant.CookieType.SESSION_ID, null);
+			return authService.exchangeForTokens(tokenDto.getToken(),tokenDto.getClientSecret(), dimension,sessionId).flatMap(tokens -> {
+				if(!((boolean) tokens.get("isValid"))){
+					return new ResponseFactory()
+							.error((List<String>)tokens.getOrDefault("errors",List.of("Unexpected error")))
+							.status(HttpStatus.UNAUTHORIZED)
+							.build();
+				}
+
+				return this.authFlow.verify(sessionId, tokenDto.getCodeVerifier())
+	                    .flatMap(isVerified -> {
+	                        if (!isVerified) {
+	                            return new ResponseFactory()
+	                                    .error(List.of("Invalid requester or code verifier"))
+	                                    .status(HttpStatus.BAD_REQUEST)
+	                                    .build();
+	                        }
+
+	                        // If verification is successful, proceed to build the success response
+	                        ResponseCookie accessTokenCookie = ResponseCookie.from(AuthConstant.CookieType.ACCESS_TOKEN, (String) tokens.get("access"))
+	                                .httpOnly(true)
+	                                .path("/")
+	                                .maxAge(AuthConstant.ExpiryTime.ACCESS_TOKEN)
+	                                .build();
+
+	                        ResponseCookie refreshTokenCookie = ResponseCookie.from(AuthConstant.CookieType.REFRESH_TOKEN, (String) tokens.get("refresh")) // Corrected cookie name
+	                                .httpOnly(true)
+	                                .path("/")
+	                                .maxAge(AuthConstant.ExpiryTime.REFRESH_TOKEN)
+	                                .build();
+
+	                        return new ResponseFactory()
+	                                .cookie(accessTokenCookie)
+	                                .cookie(refreshTokenCookie)
+	                                .data(List.of(Map.of(
+	                                        "accessToken", tokens.get("access"),
+	                                        "refreshToken", tokens.get("refresh")
+	                                )))
+	                                .status(HttpStatus.OK)
+	                                .build();
+	                    })
+	                    .onErrorResume(e -> {
+	                        // Catch errors specifically from authFlow.verify
+	                        logger.error("Error during authFlow verification, reason: {}", e.getLocalizedMessage());
+	                        logger.debug("Verification error details: ", e);
+	                        return new ResponseFactory()
+	                                .error(List.of("Verification failed: " + e.getMessage()))
+	                                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+	                                .build();
+	                    });
+
+			})
+			.onErrorResume(t -> {
+				return new ResponseFactory()
+						.status(HttpStatus.INTERNAL_SERVER_ERROR)
+						.error(List.of(t.getMessage()))
+						.build();
+			})
+			.defaultIfEmpty(Objects.requireNonNull(new ResponseFactory()
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .error(List.of("Unknown error occured"))
+                    .build().block()));
+    }
 
 	@PostMapping("/authz_client")
 	public Mono<ResponseEntity<?>> authorizeClient(

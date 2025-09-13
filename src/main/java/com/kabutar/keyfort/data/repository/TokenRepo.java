@@ -40,13 +40,13 @@ public class TokenRepo extends BaseRepository<UUID,Token> {
         return this.updateTable(t).flatMap(id -> Mono.just(t));
 	}
 
-    public Mono<Map<String,Object>> getDetailsOfToken(String token){
-        String SQL = "SELECT t.*,u.client_id,c.secret,d.name as dimension FROM " +
+    public Mono<Token> getDetailsOfToken(String token){
+        String SQL = "SELECT t.*,u.client_id,u.username,c.secret,d.name as dimension FROM " +
                 "tokens as t JOIN users as u ON t.user_id=u.id " +
                 "JOIN clients AS c ON u.client_id=c.id " +
                 "JOIN dimensions AS d ON c.dimension_id=d.id WHERE t.token=:token;";
         DatabaseClient.GenericExecuteSpec spec = this.databaseClient.sql(SQL).bind("token",token);
-        return spec.fetch().first();
+        return this.getOne(spec,Token.class);
     }
 
 }

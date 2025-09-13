@@ -7,11 +7,12 @@ import com.kabutar.keyfort.data.entity.User;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class RoleService {
 
-    public Mono<List<String>> getRolesForUser(User user){
+    public Mono<List<String>> getRolesForUser(UUID userId){
         return Mono.just(List.of("default"));
     }
 }

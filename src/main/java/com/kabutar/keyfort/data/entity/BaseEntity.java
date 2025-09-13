@@ -51,6 +51,8 @@ public abstract class BaseEntity {
     @Column(name = "is_deleted", define = "BOOLEAN NOT NULL DEFAULT FALSE")
     protected Boolean isDeleted;
 
+    protected LinkedCaseInsensitiveMap<?> extraFields;
+
     public BaseEntity(){
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
@@ -60,6 +62,11 @@ public abstract class BaseEntity {
 
         this.deletedAt = null;
         this.isDeleted = false;
+    }
+
+    // to get values from extra fields
+    public Object get(String key){
+        return this.extraFields.get(key);
     }
 	
 	// overloading for Map<String, Object> row
@@ -73,6 +80,7 @@ public abstract class BaseEntity {
 					field.setAccessible(true);
 					try {
 						field.set(object, row.get(column.name()));
+                        row.remove(column.name());
 					} catch (IllegalArgumentException | IllegalAccessException e) {
 						logger.error("Error while digesting: {} for class {}, reason: {}",field.getName(),clazz.getName(),e.getMessage());
 						logger.debug(e);
@@ -85,6 +93,7 @@ public abstract class BaseEntity {
 					field.setAccessible(true);
 					try {
 						field.set(object, row.get(column.name()));
+                        row.remove(column.name());
 					} catch (IllegalArgumentException | IllegalAccessException e) {
 						logger.error("Error while digesting: {} for class {}, reason: {}",field.getName(),clazz.getName(),e.getMessage());
 						logger.debug(e);
@@ -94,5 +103,6 @@ public abstract class BaseEntity {
 			}
 			clazz = clazz.getSuperclass();
 		}
+        object.setExtraFields(row);
 	}
 }
