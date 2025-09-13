@@ -61,61 +61,6 @@ public abstract class BaseEntity {
         this.deletedAt = null;
         this.isDeleted = false;
     }
-    
-    /**
-     * Populates the fields of a {@link BaseEntity} object from a database row.
-     * <p>
-     * This method iterates through the fields of the given `clazz` (and its superclasses)
-     * looking for fields annotated with {@link Column}. For each such field, it attempts
-     * to retrieve the corresponding value from the provided {@link Row} object using the
-     * column name defined in the {@link Column} annotation and the field's type.
-     * </p>
-     * <p>
-     * Field accessibility is temporarily set to `true` to allow setting private fields
-     * and then restored to `false`. Any {@code IllegalArgumentException} or
-     * {@code IllegalAccessException} encountered during field setting is caught and logged
-     * as an error, with debug-level logging for the exception details.
-     * </p>
-     *
-     * @param row The {@link Row} object containing the data retrieved from the database.
-     * @param clazz The {@code Class<?>} object representing the current class or superclass
-     * being processed in the entity hierarchy.
-     * @param object The {@link BaseEntity} instance whose fields are to be populated.
-     * @see Row
-     * @see BaseEntity
-     * @see Column
-     */
-	protected void digest(Row row,Class<?> clazz,BaseEntity object) {
-		while(clazz != null) {
-			Field[] fields = clazz.getDeclaredFields();
-			
-			for(Field field:fields) {
-				if(field.isAnnotationPresent(Column.class)) {
-					Column column = field.getAnnotation(Column.class);
-					field.setAccessible(true);
-					try {
-						field.set(object, row.get(column.name(),field.getType()));
-					} catch (IllegalArgumentException | IllegalAccessException e) {
-						logger.error("Error while digesting: {} for class {}",field.getName(),clazz.getName());
-						logger.debug(e);
-					}
-					field.setAccessible(false);
-					
-				}else if(field.isAnnotationPresent(Id.class)) {
-					Id column = field.getAnnotation(Id.class);
-					field.setAccessible(true);
-					try {
-						field.set(object, row.get(column.name(),field.getType()));
-					} catch (IllegalArgumentException | IllegalAccessException e) {
-						logger.error("Error while digesting: {} for class {}",field.getName(),clazz.getName());
-						logger.debug(e);
-					}
-					field.setAccessible(false);
-				}
-			}
-			clazz = clazz.getSuperclass();
-		}
-	}
 	
 	// overloading for Map<String, Object> row
 	protected void digest(LinkedCaseInsensitiveMap<?> row,Class<?> clazz,BaseEntity object) {

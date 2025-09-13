@@ -31,10 +31,6 @@ public class Credential extends BaseEntity {
 
 	@Column(name = "user_id", define = "UUID NOT NULL", reference = "users (id)")
     private UUID userId;
-	
-	public Credential(Row row) {
-		this.digest(row, getClass(), this);
-	}
 
     public Credential(LinkedCaseInsensitiveMap<Credential> row) {
         this.digest(row, getClass(), this);

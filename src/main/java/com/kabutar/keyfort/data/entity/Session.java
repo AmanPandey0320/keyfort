@@ -33,10 +33,6 @@ public class Session extends BaseEntity {
 	@Column(name = "user_id", define = "UUID", reference = "users (id)")
 	private UUID userId;
 
-    public Session(Row row){
-        this.digest(row, getClass(), this);
-    }
-
     public Session(LinkedCaseInsensitiveMap<Client> row) {
         this.digest(row, getClass(), this);
     }

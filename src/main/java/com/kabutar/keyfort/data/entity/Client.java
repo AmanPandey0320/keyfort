@@ -38,10 +38,6 @@ public class Client extends BaseEntity {
 	@Column(name = "dimension_id", define = "UUID NOT NULL", reference = "dimensions (id)")
 	private UUID dimensionId;
 
-	public Client(Row row){
-    	this.digest(row, getClass(), this);
-    }
-
     public Client(LinkedCaseInsensitiveMap<Client> row) {
         this.digest(row, getClass(), this);
     }

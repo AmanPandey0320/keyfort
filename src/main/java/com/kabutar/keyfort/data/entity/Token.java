@@ -42,10 +42,6 @@ public class Token extends BaseEntity {
 	public Token() {
 		this.type = AuthConstant.TokenType.AUTHORIZATION;
 	}
-	
-	public Token(Row row) {
-		this.digest(row, getClass(), this);
-	}
 
     public Token(LinkedCaseInsensitiveMap<Credential> row) {
         this.digest(row, getClass(), this);

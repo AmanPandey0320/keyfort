@@ -33,10 +33,6 @@ public class Dimension extends BaseEntity {
     
     @Column(name = "is_active", define = "BOOLEAN NOT NULL DEFAULT TRUE")
     private Boolean isActive;
-    
-    public Dimension(Row row){
-    	this.digest(row, getClass(), this);
-    }
 
 	public Dimension(LinkedCaseInsensitiveMap<Dimension> row) {
 		this.digest(row, getClass(), this);

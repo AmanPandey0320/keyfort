@@ -10,6 +10,7 @@ package com.kabutar.keyfort.controller.v1;
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.data.entity.Token;
 import com.kabutar.keyfort.data.entity.User;
+import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;
 //import com.kabutar.keyfort.http.ResponseFactory;
 //import com.kabutar.keyfort.security.interfaces.SecureAuthFlow;
@@ -120,7 +121,7 @@ public class AuthController {
             }
         });
 	}
-//
+
 //	/**
 //	 *
 //	 * @param authcode
@@ -132,7 +133,7 @@ public class AuthController {
 //			@PathVariable("dimension") String dimension,
 //			ServerWebExchange exchange
 //	){
-//		
+//
 //			String sessionId = exchange.getAttributeOrDefault(AuthConstant.CookieType.SESSION_ID, null);
 //			return authService.exchangeForTokens(tokenDto.getToken(),tokenDto.getClientSecret(), dimension,sessionId).flatMap(tokens -> {
 //				if(!((boolean) tokens.get("isValid"))){
@@ -141,7 +142,7 @@ public class AuthController {
 //							.status(HttpStatus.UNAUTHORIZED)
 //							.build();
 //				}
-//				
+//
 //				return this.authFlow.verify(sessionId, tokenDto.getCodeVerifier())
 //	                    .flatMap(isVerified -> {
 //	                        if (!isVerified) {
@@ -183,7 +184,7 @@ public class AuthController {
 //	                                .status(HttpStatus.INTERNAL_SERVER_ERROR)
 //	                                .build();
 //	                    });
-//				
+//
 //			})
 //			.onErrorResume(t -> {
 //				return new ResponseFactory()
@@ -194,9 +195,9 @@ public class AuthController {
 //			.defaultIfEmpty(new ResponseFactory()
 //					.status(HttpStatus.INTERNAL_SERVER_ERROR)
 //					.error(List.of("Unknown error occured"))
-//					.build().block());	
+//					.build().block());
 //    }
-//	
+
 	@PostMapping("/authz_client")
 	public Mono<ResponseEntity<?>> authorizeClient(
 			@RequestBody ClientDto client,

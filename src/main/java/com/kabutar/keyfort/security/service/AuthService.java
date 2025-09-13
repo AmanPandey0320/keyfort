@@ -17,6 +17,9 @@ import reactor.core.publisher.Mono;
 
 import java.security.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -41,6 +44,9 @@ public class AuthService {
 
     @Autowired
     private TokenRepo tokenRepo;
+
+    @Autowired
+    private SessionRepo sessionRepo;
     /**
      *
      * @param clientId
@@ -136,39 +142,59 @@ public class AuthService {
 
     }
 //
-//    /**
-//     *
-//     * @param token
-//     * @return
-//     */
-//    private boolean isTokenValid(Token token){
-//        if(token == null){
-//            return false;
-//        }
-//
-//        if(!token.isValid()){
-//            return false;
-//        }
-//
-//        if(token.getValidTill().getTime() < System.currentTimeMillis()){
-//            return false;
-//        }
-//
-//        return true;
-//    }
-//
+    /**
+     *
+     * @param token
+     * @return
+     */
+    private boolean isTokenValid(Token token){
+        if(token == null){
+            return false;
+        }
+
+        if(!token.isValid()){
+            return false;
+        }
+
+        if(token.getValidTill().isAfter(LocalDateTime.now())){
+            return false;
+        }
+
+        return true;
+    }
+
 //    /**
 //     *
 //     * @param token
 //     * @param grantType
 //     * @return
 //     */
-//    public Mono<Map<String,Object>> exchangeForTokens(String token,String clientSecret, String dimension, String sessionId){
-//        Token savedToken = tokenRepository.findByToken(token);
+//    public Mono<Map<String,Object>> exchangeForTokens(String token, String clientSecret, String dimension, String sessionId){
+//        return Mono.zip(this.tokenRepo.getDetailsOfToken(token),this.sessionRepo.getById(UUID.fromString(sessionId)).hasElement()).flatMap(objects -> {
+//            Map<String,Object> savedToken = objects.getT1();
+//            Boolean hasSession = objects.getT2();
+//
+//            boolean isValid = true;
+//            List<String> errors = new ArrayList<>();
+//
+//            if(isValid && !this.isTokenValid(savedToken)){
+//                logger.warn("Authentication code is not valid");
+//                errors.add("Session timed out!");
+//                isValid = false;
+//            }
+//
+//            if(isValid && !savedToken.getType().equals(AuthConstant.TokenType.AUTHORIZATION)){
+//                logger.warn("Authentication code does not have appropriate grant");
+//                errors.add("Invalid token!");
+//                isValid = false;
+//            }
+//
+//
+//        });
 //        Session session = sessionRepository.findById(sessionId).orElseThrow();
 //        boolean isValid = true;
 //        List<String> errors = new ArrayList<>();
-//        
+//
 //        if(isValid && !this.isTokenValid(savedToken)){
 //        	logger.warn("Authentication code {} is not valid",token);
 //        	errors.add("Invalid user");
@@ -186,17 +212,17 @@ public class AuthService {
 //        	errors.add("Invalid user or dimension");
 //        	isValid = false;
 //        }
-//        
+//
 //        if(isValid && !savedToken.getUser().getClient().getClientSecret().equals(clientSecret)) {
 //        	logger.warn("Authentication code {} does not have valid client secret",token);
 //        	errors.add("Invalid client");
 //        	isValid = false;
 //        }
-//        
+//
 //        if(!isValid) {
 //        	return Mono.just(Map.of("isValid",isValid, "errors",errors));
 //        }
-//        
+//
 //        if(sessionId == null) {
 //        	logger.warn("Authentication code {} does not have valid session",token);
 //        	errors.add("Session timeout");
@@ -206,17 +232,17 @@ public class AuthService {
 //        User user = savedToken.getUser();
 //        //mark current auth token as invalid
 //        savedToken.setValid(false);
-//        
-//        
+//
+//
 //        //setting user to session
 //        session.setUser(user);
 //        session.setAuthenticated(true);
 //        session.setLastUsed(new Date());
-//        
+//
 //        //save to repository
 //        tokenRepository.save(savedToken);
 //        sessionRepository.save(session);
-//        
+//
 //        return roleService.getRolesForUser(savedToken.getUser()).flatMap(roles -> {
 //        	String accessToken = null;
 //            String refreshToken = null;
@@ -228,7 +254,7 @@ public class AuthService {
 //                    user.getUsername(),
 //                    AuthConstant.ExpiryTime.ACCESS_TOKEN
 //            );
-//            
+//
 //            refreshToken = jwt.generateToken(
 //                    Map.of(
 //                            AuthConstant.ClaimType.ROLE,roles,
@@ -237,9 +263,9 @@ public class AuthService {
 //                    user.getUsername(),
 //                    AuthConstant.ExpiryTime.REFRESH_TOKEN
 //            );
-//            
+//
 //            logger.debug("access token and new session generated for user: {}",user.getUsername());
-//            
+//
 //            return Mono.just(Map.of(
 //                    "isValid",true,
 //                    "refresh",refreshToken,
@@ -247,9 +273,9 @@ public class AuthService {
 //                    "errors",errors
 //            ));
 //        });
-//        
-//        
-//        
+//
+//
+//
 //    }
 //
 //    /**

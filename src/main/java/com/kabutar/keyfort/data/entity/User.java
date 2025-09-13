@@ -45,10 +45,6 @@ public class User extends BaseEntity {
 	@Column(name = "client_id", define = "UUID NOT NULL", reference = "clients (id)")
 	private UUID clientId;
 
-    public User(Row row){
-        this.digest(row, getClass(), this);
-    }
-
     public User(LinkedCaseInsensitiveMap<User> row) {
         this.digest(row, getClass(), this);
     }
