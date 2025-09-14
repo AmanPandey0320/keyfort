@@ -7,6 +7,7 @@ import com.kabutar.keyfort.util.Jwt;
 import com.kabutar.keyfort.util.PasswordEncoderUtil;
 import com.kabutar.keyfort.util.TokenGenerator;
 import com.kabutar.keyfort.util.url.Matcher;
+import io.jsonwebtoken.Claims;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -261,36 +262,36 @@ public class AuthService {
 
         });
     }
-//
-//    /**
-//     *
-//     * @param jwt
-//     * @param resourceUrl
-//     * @return
-//     */
-//    @Transactional
-//    public Mono<Boolean> validateAccessToken(String accessToken) {
-//        Claims claims = jwt.extractAllClaim(accessToken);
-//        
-//        String userName = claims.getSubject();
-//        String sessionId = (String) claims.get(AuthConstant.ClaimType.SESSION);
-//        
-//        logger.debug("Validation session id {}",sessionId);
-//        
-//        Session session = sessionRepository.getReferenceById(sessionId);
-//        logger.debug("recieved session id {}",session.getId());
-//        
-//        if(!(session.getId().equals(sessionId) && session.getUser().getUsername().equals(userName))) {
-//        	return Mono.just(false);
-//        }
-//        
-//        if((session.getLastUsed().getTime() + AuthConstant.ExpiryTime.ACCESS_TOKEN * 1000) <= System.currentTimeMillis()) {
-//        	return Mono.just(false);
-//        }
-//        
-//        //roles check to be implemented as part of rbac
-//        
-//        return Mono.just(true);
-//    }
+
+    /**
+     *
+     * @param accessToken
+     * @return
+     */
+    public Mono<Boolean> validateAccessToken(String accessToken) {
+        Claims claims = jwt.extractAllClaim(accessToken);
+
+        String userName = claims.getSubject();
+        String sessionId = (String) claims.get(AuthConstant.ClaimType.SESSION);
+
+        logger.debug("Validation session id {}",sessionId);
+
+        return this.sessionRepo.getById(UUID.fromString(sessionId)).flatMap(session -> {
+            logger.debug("recieved session id {}",session.getId());
+
+            if(session.getLastUsed().plusSeconds(AuthConstant.ExpiryTime.SESSION).isBefore(LocalDateTime.now())){
+                return Mono.just(false);
+            }
+
+            return this.userRepo.getById(session.getUserId()).flatMap(user -> {
+                if(!user.getUsername().equals(userName)) {
+                    return Mono.just(false);
+                }
+
+                //TODO: roles check to be implemented
+                return Mono.just(true);
+            });
+        });
+    }
 
 }

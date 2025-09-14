@@ -27,7 +27,6 @@ import com.kabutar.keyfort.security.service.AuthService;
 
 import reactor.core.publisher.Mono;
 
-
 @Component
 public class AuthrizationFilter implements WebFilter  {
 	
@@ -39,9 +38,7 @@ public class AuthrizationFilter implements WebFilter  {
 	private final List<PathPattern> patterns;
 	private final int patternSize;
 	private final ObjectMapper objectMapper;
-	
-	
-	
+
 	public AuthrizationFilter(AuthConfig authConfig, AuthService authService) {
 		super();
 		this.authConfig = authConfig;
@@ -52,38 +49,33 @@ public class AuthrizationFilter implements WebFilter  {
 		this.objectMapper = new ObjectMapper();
 	}
 
-
-
 	@Override
 	public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 		
-//		if(this.shouldNotFilter(exchange.getRequest())) {
-//			return chain.filter(exchange);
-//		}
-//		
-//		ServerHttpResponse response = exchange.getResponse();
-//		HttpCookie accessTokenCookie = exchange
-//				.getRequest()
-//				.getCookies()
-//				.getOrDefault(AuthConstant.CookieType.ACCESS_TOKEN, List.of())
-//				.stream()
-//				.findFirst()
-//				.orElse(null);
-//		
-//		if(accessTokenCookie != null) {
-//			return authService.validateAccessToken(accessTokenCookie.getValue()).flatMap(isValid -> {
-//				if(isValid) {
-//					return chain.filter(exchange);
-//				}
-//				
-//				return this.sendErrorResponse(response);
-//				
-//			});
-//		}
-//		return this.sendErrorResponse(response);
-		
-		// TODO: remove this line
-		return chain.filter(exchange);
+		if(this.shouldNotFilter(exchange.getRequest())) {
+			return chain.filter(exchange);
+		}
+
+		ServerHttpResponse response = exchange.getResponse();
+		HttpCookie accessTokenCookie = exchange
+				.getRequest()
+				.getCookies()
+				.getOrDefault(AuthConstant.CookieType.ACCESS_TOKEN, List.of())
+				.stream()
+				.findFirst()
+				.orElse(null);
+
+		if(accessTokenCookie != null) {
+			return authService.validateAccessToken(accessTokenCookie.getValue()).flatMap(isValid -> {
+				if(isValid) {
+					return chain.filter(exchange);
+				}
+
+				return this.sendErrorResponse(response);
+
+			});
+		}
+		return this.sendErrorResponse(response);
 	}
 	
 	/**
@@ -98,18 +90,12 @@ public class AuthrizationFilter implements WebFilter  {
 			response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
 			
 			logger.error("Error at authorization filter: unauthorized access");
-			
 			return response.writeWith(Mono.just(response.bufferFactory().wrap(responseBody.getBytes(StandardCharsets.UTF_8))));
 		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-			logger.error("Error in authorization filter: {}",e.getLocalizedMessage());
-			logger.debug(e);
+			logger.error("Error in authorization filter",e);
 			response.setStatusCode(HttpStatus.INTERNAL_SERVER_ERROR);
-			
 			return response.writeWith(Mono.empty());
 		}
-		
 	}
 	
 	/**
@@ -124,14 +110,10 @@ public class AuthrizationFilter implements WebFilter  {
 		logger.info("request path: {}, request method: {}",path,method);
 		
 		for(int i=0;i<this.patternSize;i++) {
-			if(this.patterns.get(i).matches(PathContainer.parsePath(path))
-					&& this.authConfig.getPreAuthnUrls().get(i).getMethod().equals(method)
-					) {
+			if(this.patterns.get(i).matches(PathContainer.parsePath(path)) && this.authConfig.getPreAuthnUrls().get(i).getMethod().equals(method)) {
 				return true;
 			}
 		}
 		return false;
-	}	
-	
-
+	}
 }

@@ -10,12 +10,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kabutar.keyfort.data.entity.Dimension;
-import com.kabutar.keyfort.data.repository.DimensionRepo;
 import com.kabutar.keyfort.http.ResponseFactory;
 import com.kabutar.keyfort.ui.service.UIExtService;
 
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
@@ -25,32 +22,13 @@ public class UIExtensionController {
 	@Autowired
 	private UIExtService uiService;
 	
-	@Autowired
-	private DimensionRepo repo;
-	
 	@GetMapping("/home")
 	public Mono<ResponseEntity<?>> getConsoleData(@PathVariable("dimension") String dimension){
-		
-		uiService.execute();
-		
-		return new ResponseFactory()
-                .data(List.of(1))
-                .status(HttpStatus.OK)
-                .build();
-		
-//		Flux<DimensionEntity> dimensions = repo.findAll();
-//		
-//		Mono<List<DimensionEntity>> dimensionsListMono = dimensions.collectList();
-//
-//	    
-//	    return dimensionsListMono.flatMap(dimensionList -> {
-//	        
-//	        dimensionList.forEach(item -> System.out.println(item.toString()));
-//
-//	        return new ResponseFactory()
-//	                .data(List.of(dimensionList))
-//	                .status(HttpStatus.OK)
-//	                .build();
-//	    });
+	    return uiService.execute().flatMap(dimensionList -> {
+	        dimensionList.forEach(item -> System.out.println(item.toString()));
+	        return new ResponseFactory()
+	                .status(HttpStatus.OK)
+	                .build();
+	    });
 	}
 }

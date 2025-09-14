@@ -1,28 +1,9 @@
 package com.kabutar.keyfort.controller.v1;
 
-//import java.util.*;
-
-//import com.kabutar.keyfort.constant.AuthConstant;
-//import com.kabutar.keyfort.data.entity.Token;
-//import com.kabutar.keyfort.data.entity.User;
-//import com.kabutar.keyfort.dto.ClientDto;
-//import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.constant.AuthConstant;
-import com.kabutar.keyfort.data.entity.Token;
 import com.kabutar.keyfort.data.entity.User;
 import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;
-//import com.kabutar.keyfort.http.ResponseFactory;
-//import com.kabutar.keyfort.security.interfaces.SecureAuthFlow;
-//import com.kabutar.keyfort.security.service.AuthService;
-
-//import reactor.core.publisher.Mono;
-//
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.http.ResponseCookie;
-//import org.springframework.http.ResponseEntity;
-import com.kabutar.keyfort.data.repository.BaseRepository;
 import com.kabutar.keyfort.dto.ClientDto;
 import com.kabutar.keyfort.http.ResponseFactory;
 import com.kabutar.keyfort.security.interfaces.SecureAuthFlow;
@@ -40,9 +21,6 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-//import org.springframework.web.server.ServerWebExchange;
-//import org.apache.logging.log4j.LogManager;
-//import org.apache.logging.log4j.Logger;
 
 @RestController
 @RequestMapping("/api/v1/auth/{dimension}")
