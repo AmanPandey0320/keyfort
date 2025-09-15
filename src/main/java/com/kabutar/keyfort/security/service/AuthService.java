@@ -22,7 +22,7 @@ import java.util.UUID;
 
 @Service
 public class AuthService {
-	
+
 	private final Logger logger = LogManager.getLogger(AuthService.class);
 
     @Autowired
@@ -292,6 +292,16 @@ public class AuthService {
                 return Mono.just(true);
             });
         });
+    }
+
+    public Mono<Map<String,Object>> generateTokens(String refreshToken){
+//        Claims claims = jwt.extractAllClaim(refreshToken);
+//
+//        List<String> roles = (List<String>) claims.get(AuthConstant.ClaimType.ROLE);
+//        String sessionId = (String) claims.get(AuthConstant.ClaimType.SESSION);
+//        String username = claims.getSubject();
+//
+        return Mono.just(Map.of("key","value"));
     }
 
 }

@@ -2,6 +2,7 @@ package com.kabutar.keyfort.controller.v1;
 
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.data.entity.User;
+import com.kabutar.keyfort.dto.RefreshTokenDto;
 import com.kabutar.keyfort.dto.TokenDto;
 import com.kabutar.keyfort.dto.UserDto;
 import com.kabutar.keyfort.dto.ClientDto;
@@ -103,7 +104,7 @@ public class AuthController {
 	 * @return
 	 */
 	@PostMapping("/exchange_token")
-	public Mono<ResponseEntity<?>> token(
+	public Mono<ResponseEntity<?>> exchangeForTokens(
 			@RequestBody TokenDto tokenDto,
 			@PathVariable("dimension") String dimension,
 			ServerWebExchange exchange
@@ -202,4 +203,26 @@ public class AuthController {
                         .error(List.of(t.getLocalizedMessage()))
                         .build());
 	}
+
+    @PostMapping("/token")
+    Mono<ResponseEntity<?>> refreshTokens(
+            @RequestBody RefreshTokenDto refreshTokenDto,
+            @CookieValue(value="KF_SESSION_ID", required=false) String sessionId,
+            @PathVariable("dimension") String dimension
+    ){
+
+//        return this.authService.validateAccessToken(refreshTokenDto.getRefreshToken()).flatMap(isValid -> {
+//            if(!isValid){
+//                return new ResponseFactory()
+//                        .status(HttpStatus.UNAUTHORIZED)
+//                        .error(List.of("Invalid session! Please login again"))
+//                        .build();
+//            }
+//
+//
+//        })
+
+        //TODO: remove this line
+        return new ResponseFactory().build();
+    }
 }
