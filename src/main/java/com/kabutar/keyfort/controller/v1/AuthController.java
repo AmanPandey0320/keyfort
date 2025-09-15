@@ -32,12 +32,7 @@ public class AuthController {
 
     @Autowired
     private SecureAuthFlow authFlow;
-//	
-//	@Autowired
-//	private SecureAuthFlow authFlow;
-//	
-//	private final Logger logger  = LogManager.getLogger(AuthController.class);
-//
+
 	/**
 	 *
 	 * @param clientId
@@ -107,7 +102,7 @@ public class AuthController {
 	 * @param authcode
 	 * @return
 	 */
-	@PostMapping("/token")
+	@PostMapping("/exchange_token")
 	public Mono<ResponseEntity<?>> token(
 			@RequestBody TokenDto tokenDto,
 			@PathVariable("dimension") String dimension,

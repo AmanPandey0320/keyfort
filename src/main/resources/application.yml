@@ -10,7 +10,7 @@ security:
          method: "POST"
        - path: "/api/v1/auth/*/authz_client"
          method: "POST"
-       - path: "/api/v1/auth/*/token"
+       - path: "/api/v1/auth/*/exchange_token"
          method: "POST"
 
 config:
