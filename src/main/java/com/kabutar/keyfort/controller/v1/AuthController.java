@@ -211,18 +211,19 @@ public class AuthController {
             @PathVariable("dimension") String dimension
     ){
 
-//        return this.authService.validateAccessToken(refreshTokenDto.getRefreshToken()).flatMap(isValid -> {
-//            if(!isValid){
-//                return new ResponseFactory()
-//                        .status(HttpStatus.UNAUTHORIZED)
-//                        .error(List.of("Invalid session! Please login again"))
-//                        .build();
-//            }
-//
-//
-//        })
+        return this.authService.validateAccessToken(refreshTokenDto.getRefreshToken()).flatMap(isValid -> {
+            if(!isValid){
+                return new ResponseFactory()
+                        .status(HttpStatus.UNAUTHORIZED)
+                        .error(List.of("Invalid session! Please login again"))
+                        .build();
+            }
 
-        //TODO: remove this line
-        return new ResponseFactory().build();
+            return this.authService.generateTokens(refreshTokenDto.getRefreshToken()).flatMap(tokens -> new ResponseFactory()
+                    .cookie(tokens.get(AuthConstant.TokenType.REFRESH))
+                    .cookie(tokens.get(AuthConstant.TokenType.ACCESS))
+                    .status(HttpStatus.OK)
+                    .build());
+        });
     }
 }

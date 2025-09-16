@@ -11,6 +11,7 @@ import io.jsonwebtoken.Claims;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 
@@ -294,14 +295,52 @@ public class AuthService {
         });
     }
 
-    public Mono<Map<String,Object>> generateTokens(String refreshToken){
-//        Claims claims = jwt.extractAllClaim(refreshToken);
-//
-//        List<String> roles = (List<String>) claims.get(AuthConstant.ClaimType.ROLE);
-//        String sessionId = (String) claims.get(AuthConstant.ClaimType.SESSION);
-//        String username = claims.getSubject();
-//
-        return Mono.just(Map.of("key","value"));
+    /**
+     *
+     * @param refreshToken
+     * @return
+     */
+    public Mono<Map<String,ResponseCookie>> generateTokens(String refreshToken){
+        Claims claims = jwt.extractAllClaim(refreshToken);
+
+        List<String> roles = (List<String>) claims.get(AuthConstant.ClaimType.ROLE);
+        String sessionId = (String) claims.get(AuthConstant.ClaimType.SESSION);
+        String username = claims.getSubject();
+
+        String accessToken = jwt.generateToken(
+                Map.of(
+                        AuthConstant.ClaimType.ROLE,roles,
+                        AuthConstant.ClaimType.SESSION,sessionId
+                ),
+                username,
+                AuthConstant.ExpiryTime.ACCESS_TOKEN
+        );
+        String newRefreshToken = jwt.generateToken(
+                Map.of(
+                        AuthConstant.ClaimType.ROLE,roles,
+                        AuthConstant.ClaimType.SESSION,sessionId
+                ),
+                username,
+                AuthConstant.ExpiryTime.REFRESH_TOKEN
+        );
+
+        //Cookie
+        ResponseCookie accessTokenCookie = ResponseCookie.from(AuthConstant.CookieType.ACCESS_TOKEN, accessToken)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(AuthConstant.ExpiryTime.ACCESS_TOKEN)
+                .build();
+
+        ResponseCookie refreshTokenCookie = ResponseCookie.from(AuthConstant.CookieType.REFRESH_TOKEN, newRefreshToken)
+                .httpOnly(true)
+                .path("/")
+                .maxAge(AuthConstant.ExpiryTime.REFRESH_TOKEN)
+                .build();
+
+        return Mono.just(Map.of(
+                AuthConstant.TokenType.REFRESH,refreshTokenCookie,
+                AuthConstant.TokenType.ACCESS,accessTokenCookie
+        ));
     }
 
 }
