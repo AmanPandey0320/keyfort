@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.4.3'
 	id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version "7.2.1"
 }
 
 group = 'com.kabutar'
@@ -11,6 +12,12 @@ java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
 	}
+}
+
+spotless {
+    java {
+        palantirJavaFormat('2.39.0').style("AOSP").formatJavadoc(true)
+    }
 }
 
 repositories {

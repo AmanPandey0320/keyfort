@@ -5,7 +5,7 @@ public class TokenDto {
     private String clientSecret;
     private String codeVerifier;
     private String grantType;
-    
+
     public TokenDto() {}
 
     public TokenDto(String token, String clientSecret, String codeVerifier, String grantType) {
@@ -23,39 +23,33 @@ public class TokenDto {
         this.token = token;
     }
 
-	public String getClientSecret() {
-		return clientSecret;
-	}
+    public String getClientSecret() {
+        return clientSecret;
+    }
 
-	public void setClientSecret(String clientSecret) {
-		this.clientSecret = clientSecret;
-	}
-	
-	
+    public void setClientSecret(String clientSecret) {
+        this.clientSecret = clientSecret;
+    }
 
-	public String getCodeVerifier() {
-		return codeVerifier;
-	}
+    public String getCodeVerifier() {
+        return codeVerifier;
+    }
 
-	public void setCodeVerifier(String codeVerifier) {
-		this.codeVerifier = codeVerifier;
-	}
-	
+    public void setCodeVerifier(String codeVerifier) {
+        this.codeVerifier = codeVerifier;
+    }
 
-	public String getGrantType() {
-		return grantType;
-	}
+    public String getGrantType() {
+        return grantType;
+    }
 
-	public void setGrantType(String grantType) {
-		this.grantType = grantType;
-	}
+    public void setGrantType(String grantType) {
+        this.grantType = grantType;
+    }
 
-	@Override
-	public String toString() {
-		return "TokenDto [token=" + token + ", clientSecret=" + clientSecret + ", codeVerifier=" + codeVerifier + ", grantType=" + grantType + "]";
-	}
-
-	
-
-    
+    @Override
+    public String toString() {
+        return "TokenDto [token=" + token + ", clientSecret=" + clientSecret + ", codeVerifier="
+                + codeVerifier + ", grantType=" + grantType + "]";
+    }
 }

@@ -1,37 +1,36 @@
 package com.kabutar.keyfort.data.repository;
 
+import com.kabutar.keyfort.data.entity.Client;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Repository;
-
-import com.kabutar.keyfort.data.entity.Client;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.UUID;
 
-
 @Repository
 public class ClientRepo extends BaseRepository<UUID, Client> {
-	private final Logger logger = LogManager.getLogger(ClientRepo.class);
-	private final DatabaseClient databaseClient;
+    private final Logger logger = LogManager.getLogger(ClientRepo.class);
+    private final DatabaseClient databaseClient;
 
     public ClientRepo(DatabaseClient databaseClient) {
-		super(Client.class,databaseClient);
+        super(Client.class, databaseClient);
         this.databaseClient = databaseClient;
     }
 
-	@Override
-	public void create() throws Exception {
-		logger.info("Entering create method of client repository");
-		this.createTable(this.databaseClient);
-	}
+    @Override
+    public void create() throws Exception {
+        logger.info("Entering create method of client repository");
+        this.createTable(this.databaseClient);
+    }
 
-	@Override
-	public Mono<Client> save(Client c) throws Exception {
-        if(c.getId() == null) {
+    @Override
+    public Mono<Client> save(Client c) throws Exception {
+        if (c.getId() == null) {
             return this.insertIntoTable(c).flatMap(id -> {
                 c.setId(id);
                 return Mono.just(c);
@@ -42,12 +41,14 @@ public class ClientRepo extends BaseRepository<UUID, Client> {
 
     /**
      * get clients by dimension id
+     *
      * @param dimensionId
      * @return
      */
-    public Flux<Client> getClientsByDimension(UUID dimensionId){
+    public Flux<Client> getClientsByDimension(UUID dimensionId) {
         String GET_CLIENTS_BY_DIMENSION_SQL = "SELECT * from clients WHERE dimension_id=:did";
-        DatabaseClient.GenericExecuteSpec spec = this.databaseClient.sql(GET_CLIENTS_BY_DIMENSION_SQL).bind("did",dimensionId);
+        DatabaseClient.GenericExecuteSpec spec =
+                this.databaseClient.sql(GET_CLIENTS_BY_DIMENSION_SQL).bind("did", dimensionId);
         return this.getAll(spec, Client.class);
     }
 }

@@ -5,8 +5,8 @@ public class ClientDto {
     private String clientSecret;
     private String grantType;
     private String redirectUri;
-    
-    public ClientDto() {} 
+
+    public ClientDto() {}
 
     public String getClientId() {
         return clientId;

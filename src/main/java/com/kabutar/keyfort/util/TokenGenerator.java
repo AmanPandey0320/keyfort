@@ -10,6 +10,5 @@ public class TokenGenerator {
 
     private static String generateToken() {
         return UUID.randomUUID().toString();
-        
     }
 }

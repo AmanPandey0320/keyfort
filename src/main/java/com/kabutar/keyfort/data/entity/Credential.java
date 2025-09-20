@@ -4,11 +4,11 @@ import com.kabutar.keyfort.data.annotation.Column;
 import com.kabutar.keyfort.data.annotation.Entity;
 import com.kabutar.keyfort.data.annotation.Id;
 
-import io.r2dbc.spi.Row;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+
 import org.springframework.util.LinkedCaseInsensitiveMap;
 
 import java.util.UUID;
@@ -20,16 +20,16 @@ import java.util.UUID;
 @Entity("credentials")
 public class Credential extends BaseEntity {
 
-	@Id
+    @Id
     private UUID id;
 
-	@Column(name = "hash",define = "TEXT NOT NULL")
+    @Column(name = "hash", define = "TEXT NOT NULL")
     private String hash;
 
-	@Column(name = "is_active", define = "BOOLEAN NOT NULL DEFAULT TRUE")
+    @Column(name = "is_active", define = "BOOLEAN NOT NULL DEFAULT TRUE")
     private Boolean isActive;
 
-	@Column(name = "user_id", define = "UUID NOT NULL", reference = "users (id)")
+    @Column(name = "user_id", define = "UUID NOT NULL", reference = "users (id)")
     private UUID userId;
 
     public Credential(LinkedCaseInsensitiveMap<Credential> row) {
