@@ -12,6 +12,8 @@ security:
          method: "POST"
        - path: "/api/v1/auth/*/exchange_token"
          method: "POST"
+       - path: "/api/v1/oidc/*/.well-known/openid-configuration"
+         method: "GET"
 
 config:
   dimension:

@@ -27,6 +27,10 @@ public class ResponseFactory {
         this.httpHeaders = new HttpHeaders();
     }
 
+    public static ResponseFactory builder(){
+        return new ResponseFactory();
+    }
+
     public ResponseFactory status(HttpStatus status) {
         this.status = status;
         return this;
@@ -62,6 +66,10 @@ public class ResponseFactory {
         return Mono.just(ResponseEntity.status(status)
                 .headers(httpHeaders)
                 .body(Map.of("error", error, "message", message, "data", data)));
+    }
+
+    public Mono<ResponseEntity<?>> send(Object object){
+        return Mono.just(ResponseEntity.status(this.status).body(object));
     }
 
     private String cookieToString(ResponseCookie cookie) {
