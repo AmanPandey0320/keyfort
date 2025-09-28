@@ -14,6 +14,8 @@ security:
          method: "POST"
        - path: "/api/v1/oidc/*/.well-known/openid-configuration"
          method: "GET"
+       - path: "/api/v1/oidc/*/.well-known/jwks.json"
+         method: "GET"
 
 config:
   dimension:

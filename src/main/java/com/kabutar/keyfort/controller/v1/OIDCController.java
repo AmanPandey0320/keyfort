@@ -55,7 +55,15 @@ public class OIDCController {
     @GetMapping("/.well-known/jwks.json")
     public Mono<ResponseEntity<?>> jwksEndpoint(@PathVariable("dimension") String dimension, ServerHttpRequest request){
         // TODO: Implement JWKS.json endpoint
+        Map<String,String> data = new HashMap<>();
 
-        return new ResponseFactory().status(HttpStatus.OK).build();
+        data.put(OIDCConstant.JWKS.KEY_TYPE,"RSA");
+        data.put(OIDCConstant.JWKS.PUBLIC_KEY_USE,"sig");
+        data.put(OIDCConstant.JWKS.KEY_ID, "e605d79b-1c5a-4b36-86a5-96970f6292af");
+        data.put(OIDCConstant.JWKS.ALGORITHM, "RS256");
+        data.put(OIDCConstant.JWKS.RSA_MODULUS, "a709e2f84ac0e21eb0caa018cf7f697f774e96f8115fc23"); // TODO: replace this, load from file
+        data.put(OIDCConstant.JWKS.RSA_EXPONENT, "65537"); // TODO: replace this. load from file
+
+        return ResponseFactory.builder().send(data);
     }
 }

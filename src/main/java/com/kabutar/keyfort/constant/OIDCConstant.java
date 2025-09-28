@@ -63,4 +63,50 @@ public class OIDCConstant {
      * A JSON array of Client Authentication methods supported by this Token Endpoint.
      */
     public static final String TOKEN_ENDPOINT_AUTH_METHODS_SUPPORTED = "token_endpoint_auth_methods_supported";
+
+    public static final class JWKS {
+
+        /**
+         * Private constructor to prevent instantiation of this utility class.
+         */
+        private JwkKeys() {
+            // This class should not be instantiated.
+        }
+
+        /**
+         * The "kty" (key type) parameter identifies the cryptographic algorithm
+         * family used with the key, such as "RSA" or "EC".
+         */
+        public static final String KEY_TYPE = "kty";
+
+        /**
+         * The "use" (public key use) parameter identifies the intended use of the
+         * public key. For JWTs, this is typically "sig" (signature).
+         */
+        public static final String PUBLIC_KEY_USE = "use";
+
+        /**
+         * The "kid" (key ID) parameter is used to match a specific key. This is
+         * particularly useful when there are multiple keys in a JWK Set.
+         */
+        public static final String KEY_ID = "kid";
+
+        /**
+         * The "alg" (algorithm) parameter identifies the algorithm intended for
+         * use with the key, such as "RS256".
+         */
+        public static final String ALGORITHM = "alg";
+
+        /**
+         * For an RSA key, the "n" (modulus) parameter contains the modulus value,
+         * represented as a Base64URL-encoded string.
+         */
+        public static final String RSA_MODULUS = "n";
+
+        /**
+         * For an RSA key, the "e" (exponent) parameter contains the exponent value,
+         * represented as a Base64URL-encoded string.
+         */
+        public static final String RSA_EXPONENT = "e";
+    }
 }
