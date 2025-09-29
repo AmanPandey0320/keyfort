@@ -24,9 +24,9 @@ public class AuthConstant {
     }
 
     public static class CookieType {
-        public static String ACCESS_TOKEN = "KF_ACCESS_TOKEN";
-        public static String REFRESH_TOKEN = "KF_REFRESH_TOKEN";
-        public static String SESSION_ID = "KF_SESSION_ID";
+        public static final String ACCESS_TOKEN = "KF_ACCESS_TOKEN";
+        public static final String REFRESH_TOKEN = "KF_REFRESH_TOKEN";
+        public static final String SESSION_ID = "KF_SESSION_ID";
     }
 
     public static class GrantType {

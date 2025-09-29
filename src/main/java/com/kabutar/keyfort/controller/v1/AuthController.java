@@ -235,8 +235,8 @@ public class AuthController {
 
         return this.authService
                 .validateAccessToken(refreshTokenDto.getRefreshToken())
-                .flatMap(isValid -> {
-                    if (!isValid) {
+                .flatMap(map -> {
+                    if (!((boolean) map.get("isValid"))) {
                         return new ResponseFactory()
                                 .status(HttpStatus.UNAUTHORIZED)
                                 .error(List.of("Invalid session! Please login again"))

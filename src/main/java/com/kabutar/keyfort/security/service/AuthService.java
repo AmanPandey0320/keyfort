@@ -288,7 +288,7 @@ public class AuthService {
      * @param accessToken
      * @return
      */
-    public Mono<Boolean> validateAccessToken(String accessToken) {
+    public Mono<Map<String,?>> validateAccessToken(String accessToken) {
         Claims claims = jwt.extractAllClaim(accessToken);
 
         String userName = claims.getSubject();
@@ -302,16 +302,16 @@ public class AuthService {
             if (session.getLastUsed()
                     .plusSeconds(AuthConstant.ExpiryTime.SESSION)
                     .isBefore(LocalDateTime.now())) {
-                return Mono.just(false);
+                return Mono.just(Map.of("isValid",false));
             }
 
             return this.userRepo.getById(session.getUserId()).flatMap(user -> {
                 if (!user.getUsername().equals(userName)) {
-                    return Mono.just(false);
+                    return Mono.just(Map.of("isValid",false));
                 }
 
                 // TODO: roles check to be implemented
-                return Mono.just(true);
+                return Mono.just(Map.of("user",user,"isValid",true));
             });
         });
     }

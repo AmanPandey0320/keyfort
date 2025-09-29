@@ -69,7 +69,7 @@ public class OIDCConstant {
         /**
          * Private constructor to prevent instantiation of this utility class.
          */
-        private JwkKeys() {
+        private void JwkKeys() {
             // This class should not be instantiated.
         }
 
