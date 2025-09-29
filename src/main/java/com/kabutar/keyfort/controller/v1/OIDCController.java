@@ -2,9 +2,12 @@ package com.kabutar.keyfort.controller.v1;
 
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.constant.OIDCConstant;
+import com.kabutar.keyfort.data.repository.UserRepo;
 import com.kabutar.keyfort.http.ResponseFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +21,9 @@ import java.util.Map;
 @RequestMapping("/api/v1/oidc/{dimension}")
 public class OIDCController {
     private final Logger logger = LogManager.getLogger(OIDCController.class);
+
+    @Autowired
+    private UserRepo userRepo;
 
     @GetMapping("/.well-known/openid-configuration")
     public Mono<ResponseEntity<?>> discoveryEndpoint(@PathVariable("dimension") String dimension, ServerHttpRequest request){
@@ -64,11 +70,13 @@ public class OIDCController {
         return ResponseFactory.builder().send(data);
     }
 
-//    @GetMapping("/userinfo")
-//    public Mono<ResponseEntity<?>> userInfoEndPoint(
-//            @PathVariable("dimension") String dimension,
-//            @CookieValue(value = AuthConstant.CookieType.ACCESS_TOKEN, required = false) String accesToken
-//    ){
-//
-//    }
+    @GetMapping("/userinfo")
+    public Mono<ResponseEntity<?>> userInfoEndPoint(
+            @PathVariable("dimension") String dimension,
+            ServerHttpRequest request
+    ){
+        String userName = String.valueOf(request.getHeaders().get(AuthConstant.USER_DETAIL).get(0));
+        logger.info("Sending user info for: {}",userName);
+        return this.userRepo.getUserByUserName(userName).flatMap(user -> ResponseFactory.builder().send(user));
+    }
 }

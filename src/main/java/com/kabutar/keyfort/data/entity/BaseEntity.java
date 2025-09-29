@@ -1,5 +1,8 @@
 package com.kabutar.keyfort.data.entity;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.kabutar.keyfort.data.annotation.Column;
 import com.kabutar.keyfort.data.annotation.Id;
 
@@ -24,6 +27,8 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 public abstract class BaseEntity {
+
+    @JsonIgnore
     private final Logger logger = LogManager.getLogger(BaseEntity.class);
 
     @Column(name = "created_at", define = "TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP")
@@ -44,6 +49,7 @@ public abstract class BaseEntity {
     @Column(name = "is_deleted", define = "BOOLEAN NOT NULL DEFAULT FALSE")
     protected Boolean isDeleted;
 
+    @JsonProperty("other")
     protected LinkedCaseInsensitiveMap<?> extraFields;
 
     public BaseEntity() {

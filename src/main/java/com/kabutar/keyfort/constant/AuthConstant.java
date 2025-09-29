@@ -3,6 +3,7 @@ package com.kabutar.keyfort.constant;
 public class AuthConstant {
 
     public static String ROLE = "role";
+    public static String USER_DETAIL = "KF-USER-DETAIL";
 
     public static class TokenType {
         public static String AUTHORIZATION = "authorization";

@@ -69,7 +69,7 @@ public class ResponseFactory {
     }
 
     public Mono<ResponseEntity<?>> send(Object object){
-        return Mono.just(ResponseEntity.status(this.status).body(object));
+        return Mono.just(ResponseEntity.ok(object));
     }
 
     private String cookieToString(ResponseCookie cookie) {

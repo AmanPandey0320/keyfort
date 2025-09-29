@@ -2,7 +2,6 @@ package com.kabutar.keyfort.filter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import com.kabutar.keyfort.config.AuthConfig;
 import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.data.entity.User;
@@ -40,7 +39,6 @@ public class AuthrizationFilter implements WebFilter {
     private final List<PathPattern> patterns;
     private final int patternSize;
     private final ObjectMapper objectMapper;
-    private final Gson gson;
 
     public AuthrizationFilter(AuthConfig authConfig, AuthService authService) {
         super();
@@ -52,7 +50,6 @@ public class AuthrizationFilter implements WebFilter {
                 .toList();
         this.patternSize = this.patterns.size();
         this.objectMapper = new ObjectMapper();
-        this.gson = new Gson();
     }
 
     @Override
@@ -125,4 +122,13 @@ public class AuthrizationFilter implements WebFilter {
         return false;
     }
 
+    private ServerWebExchange getExchangeWithUser(ServerWebExchange exchange, User user){
+        return exchange
+                .mutate()
+                .request(
+                        exchange.getRequest()
+                                .mutate()
+                                .header(AuthConstant.USER_DETAIL, user.getUsername()).build()
+                ).build();
+    }
 }
