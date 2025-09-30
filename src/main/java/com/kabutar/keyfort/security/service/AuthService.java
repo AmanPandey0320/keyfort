@@ -308,11 +308,11 @@ public class AuthService {
         logger.debug("Validation session id {}", sessionId);
 
         return this.sessionRepo.getById(UUID.fromString(sessionId)).flatMap(session -> {
-            logger.debug("recieved session id {}", session.getId());
+            logger.debug("recieved session id {}, {}, {}", session.toString(),session.isAuthenticated(),session.getIsDeleted());
 
-            if (session.getLastUsed()
-                    .plusSeconds(AuthConstant.ExpiryTime.SESSION)
-                    .isBefore(LocalDateTime.now())) {
+            if (session.getLastUsed().plusSeconds(AuthConstant.ExpiryTime.SESSION).isBefore(LocalDateTime.now()) ||
+                    !session.isAuthenticated() || session.getIsDeleted()
+            ) {
                 return Mono.just(Map.of("isValid",false));
             }
 
@@ -376,7 +376,7 @@ public class AuthService {
             session.setAuthenticated(false);
             session.setIsDeleted(true);
             try {
-                this.sessionRepo.save(session);
+                this.sessionRepo.save(session).subscribe();
                 return Mono.just(true);
             } catch (Exception e) {
                 logger.error("Error during logout for session: {}",sessionId);

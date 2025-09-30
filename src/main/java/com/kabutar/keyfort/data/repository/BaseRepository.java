@@ -158,8 +158,6 @@ public abstract class BaseRepository<T, C> {
     protected Mono<String> updateTable(C object) throws Exception {
         SqlQueryWithFields sql = this.sqlMap.get(SqlConstant.SqlTypes.UPDATE_TABLE_SQL);
         DatabaseClient.GenericExecuteSpec spec = this.dbClient.sql(sql.getSql());
-        System.out.println(sql.getSql());
-        System.out.println(sql.getFields().size());
 
         // Reflection-driven binding
         for (int i = 0; i < sql.getFields().size(); i++) {
@@ -186,6 +184,8 @@ public abstract class BaseRepository<T, C> {
                 spec = spec.bind(f.getName(), value);
             }
         }
+
+        logger.debug("SQL QUERY: {}",sql.getSql());
 
         return spec.fetch().rowsUpdated().map(rowsUpdated -> String.valueOf(rowsUpdated));
     }
