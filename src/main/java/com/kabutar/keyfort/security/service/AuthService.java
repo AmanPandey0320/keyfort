@@ -200,10 +200,21 @@ public class AuthService {
                 .flatMap(objects -> {
                     Token savedToken = objects.getT1();
                     Session session = objects.getT2();
-                    boolean hasSession = true;
 
                     boolean isValid = true;
                     List<String> errors = new ArrayList<>();
+
+                    if(session.getIsDeleted()){
+                        logger.warn("Trying to access a deleted/logged-out session {},for user {}",sessionId,session.getUserId());
+                        errors.add("Invalid session, please login again");
+                        isValid = false;
+                    }
+
+                    if(session.isAuthenticated()){
+                        logger.warn("Trying to exchange token for already authenticated session {}, for user, {}",sessionId,session.getUserId());
+                        errors.add("Invalid session, please login again");
+                        isValid = false;
+                    }
 
                     if (!this.isTokenValid(savedToken)) {
                         logger.warn("Authentication code is not valid");
@@ -358,5 +369,21 @@ public class AuthService {
         return Mono.just(Map.of(
                 AuthConstant.TokenType.REFRESH, refreshTokenCookie,
                 AuthConstant.TokenType.ACCESS, accessTokenCookie));
+    }
+
+    public Mono<Boolean> logoutSession(String sessionId){
+        return this.sessionRepo.getById(UUID.fromString(sessionId)).flatMap(session -> {
+            session.setAuthenticated(false);
+            session.setIsDeleted(true);
+        })
+    }
+
+    public Mono<Session> initSession() throws Exception {
+        // Create new session
+        Session session = new Session();
+        session.setAuthenticated(false);
+        session.setLastUsed(LocalDateTime.now());
+        session.setUserId(null);
+        return this.sessionRepo.save(session);
     }
 }
