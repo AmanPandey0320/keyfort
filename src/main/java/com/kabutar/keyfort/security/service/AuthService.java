@@ -375,15 +375,30 @@ public class AuthService {
         return this.sessionRepo.getById(UUID.fromString(sessionId)).flatMap(session -> {
             session.setAuthenticated(false);
             session.setIsDeleted(true);
-        })
+            try {
+                this.sessionRepo.save(session);
+                return Mono.just(true);
+            } catch (Exception e) {
+                logger.error("Error during logout for session: {}",sessionId);
+                return Mono.just(false);
+            }
+        });
     }
 
-    public Mono<Session> initSession() throws Exception {
+    public Mono<ResponseCookie> initSession() throws Exception {
         // Create new session
         Session session = new Session();
         session.setAuthenticated(false);
         session.setLastUsed(LocalDateTime.now());
         session.setUserId(null);
-        return this.sessionRepo.save(session);
+        return this.sessionRepo.save(session).flatMap(s -> {
+            ResponseCookie cookie =  ResponseCookie.from(
+                            AuthConstant.CookieType.SESSION_ID, String.valueOf(s.getId()))
+                    .httpOnly(true)
+                    .path("/")
+                    .maxAge(AuthConstant.ExpiryTime.SESSION)
+                    .build();
+            return Mono.just(cookie);
+        });
     }
 }

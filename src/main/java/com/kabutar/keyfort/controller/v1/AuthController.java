@@ -252,4 +252,20 @@ public class AuthController {
                                     .build());
                 });
     }
+
+    @GetMapping("/logout")
+    Mono<ResponseEntity<?>> logoutSession(@CookieValue(value = "KF_SESSION_ID", required = false) String sessionId){
+        return this.authService.logoutSession(sessionId).flatMap(isLoggedOut -> {
+            if(isLoggedOut){
+                try {
+                    return this.authService.initSession().flatMap(cookie -> ResponseFactory.builder().cookie(cookie).status(HttpStatus.OK).build());
+                } catch (Exception e) {
+                    logger.error("Error during logout",e);
+                    return ResponseFactory.builder().error(List.of(e.getLocalizedMessage())).status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+                }
+            }
+
+            return ResponseFactory.builder().error(List.of("Error while logout, please try again")).status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        });
+    }
 }

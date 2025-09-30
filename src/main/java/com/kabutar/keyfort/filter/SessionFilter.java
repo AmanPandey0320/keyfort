@@ -41,13 +41,7 @@ public class SessionFilter implements WebFilter {
         }
 
         try {
-            return this.authService.initSession().flatMap(s -> {
-                ResponseCookie responseCookie = ResponseCookie.from(
-                                AuthConstant.CookieType.SESSION_ID, String.valueOf(s.getId()))
-                        .httpOnly(true)
-                        .path("/")
-                        .maxAge(AuthConstant.ExpiryTime.SESSION)
-                        .build();
+            return this.authService.initSession().flatMap(responseCookie -> {
                 // Add the cookie to the response
                 exchange.getResponse().addCookie(responseCookie);
                 exchange.getAttributes()
