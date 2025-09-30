@@ -4,6 +4,7 @@ import com.kabutar.keyfort.constant.AuthConstant;
 import com.kabutar.keyfort.data.entity.Session;
 import com.kabutar.keyfort.data.repository.SessionRepo;
 
+import com.kabutar.keyfort.security.service.AuthService;
 import org.springframework.http.HttpCookie;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -19,10 +20,10 @@ import java.util.List;
 @Component
 public class SessionFilter implements WebFilter {
 
-    private SessionRepo sessionRepository;
+    private AuthService authService;
 
-    public SessionFilter(SessionRepo sessionRepository) {
-        this.sessionRepository = sessionRepository;
+    public SessionFilter(AuthService authService) {
+        this.authService = authService;
     }
 
     @Override
@@ -39,14 +40,8 @@ public class SessionFilter implements WebFilter {
             return chain.filter(exchange);
         }
 
-        // Create new session
-        Session session = new Session();
-        session.setAuthenticated(false);
-        session.setLastUsed(LocalDateTime.now());
-        session.setUserId(null);
-
         try {
-            return sessionRepository.save(session).flatMap(s -> {
+            return this.authService.initSession().flatMap(s -> {
                 ResponseCookie responseCookie = ResponseCookie.from(
                                 AuthConstant.CookieType.SESSION_ID, String.valueOf(s.getId()))
                         .httpOnly(true)
