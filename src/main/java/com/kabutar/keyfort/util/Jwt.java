@@ -51,14 +51,15 @@ public class Jwt {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(Map<String, Object> extraClaims, String username) {
-        return this.generateToken(extraClaims, username, EXPIRE);
+    public String generateToken(Map<String, Object> extraClaims, String username,String audience) {
+        return this.generateToken(extraClaims, username, EXPIRE,audience);
     }
 
-    public String generateToken(Map<String, Object> extraClaims, String username, long expiryTime) {
+    public String generateToken(Map<String, Object> extraClaims, String username, long expiryTime,String audience) {
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(username)
+                .setAudience(audience)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(
                         new Date(System.currentTimeMillis() + this.getExpiryTime(expiryTime)))

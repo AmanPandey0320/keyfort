@@ -268,19 +268,25 @@ public class AuthService {
                     return roleService.getRolesForUser(savedToken.getUserId()).flatMap(roles -> {
                         String accessToken = null;
                         String refreshToken = null;
+                        String clientId = savedToken.get("client_id").toString();
+
+                        logger.info("AMAN: {}",clientId);
+
                         accessToken = jwt.generateToken(
                                 Map.of(
                                         AuthConstant.ClaimType.ROLE, roles,
                                         AuthConstant.ClaimType.SESSION, sessionId),
                                 savedToken.get("username").toString(),
-                                AuthConstant.ExpiryTime.ACCESS_TOKEN);
+                                AuthConstant.ExpiryTime.ACCESS_TOKEN,
+                                clientId);
 
                         refreshToken = jwt.generateToken(
                                 Map.of(
                                         AuthConstant.ClaimType.ROLE, roles,
                                         AuthConstant.ClaimType.SESSION, sessionId),
                                 savedToken.get("username").toString(),
-                                AuthConstant.ExpiryTime.REFRESH_TOKEN);
+                                AuthConstant.ExpiryTime.REFRESH_TOKEN,
+                                clientId);
 
                         logger.debug(
                                 "access token and new session generated for user: {}",
@@ -337,19 +343,22 @@ public class AuthService {
         List<String> roles = (List<String>) claims.get(AuthConstant.ClaimType.ROLE);
         String sessionId = (String) claims.get(AuthConstant.ClaimType.SESSION);
         String username = claims.getSubject();
+        String clientId = claims.getAudience();
 
         String accessToken = jwt.generateToken(
                 Map.of(
                         AuthConstant.ClaimType.ROLE, roles,
                         AuthConstant.ClaimType.SESSION, sessionId),
                 username,
-                AuthConstant.ExpiryTime.ACCESS_TOKEN);
+                AuthConstant.ExpiryTime.ACCESS_TOKEN,
+                clientId);
         String newRefreshToken = jwt.generateToken(
                 Map.of(
                         AuthConstant.ClaimType.ROLE, roles,
                         AuthConstant.ClaimType.SESSION, sessionId),
                 username,
-                AuthConstant.ExpiryTime.REFRESH_TOKEN);
+                AuthConstant.ExpiryTime.REFRESH_TOKEN,
+                clientId);
 
         // Cookie
         ResponseCookie accessTokenCookie = ResponseCookie.from(
