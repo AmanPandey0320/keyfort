@@ -270,8 +270,6 @@ public class AuthService {
                         String refreshToken = null;
                         String clientId = savedToken.get("client_id").toString();
 
-                        logger.info("AMAN: {}",clientId);
-
                         accessToken = jwt.generateToken(
                                 Map.of(
                                         AuthConstant.ClaimType.ROLE, roles,
